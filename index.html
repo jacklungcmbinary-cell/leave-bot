@@ -2129,8 +2129,20 @@
         function deleteEvent(id) {
             if (confirm('Delete this event?')) {
                 fetch(`/api/event/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        events = events.filter(e => e.id !== id);
+                        renderCalendar();
+                        displayEvents();
+                    })
                     .catch(err => console.error('Error deleting event:', err));
             }
+        }
+        
+        function fetchData() {
+            renderCalendar();
+            displayEvents();
+            updateAppTab();
+            updateAdminTab();
         }
 
         let editingHalfDay = null;
