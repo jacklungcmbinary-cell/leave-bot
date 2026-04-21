@@ -2040,6 +2040,8 @@
             renderCalendar();
         }
 
+        let editingEventId = null;
+        
         function addEvent() {
             const date = document.getElementById('eventDate').value;
             const name = document.getElementById('eventName').value;
@@ -2104,8 +2106,6 @@
             }
             document.getElementById('eventDate').focus();
         }
-        
-        let editingEventId = null;
         
         function editEvent(id) {
             const event = events.find(e => e.id === id);
