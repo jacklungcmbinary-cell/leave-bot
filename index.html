@@ -1043,7 +1043,7 @@
     <!-- Quick Add Modal -->
     <div class="modal" id="quickAddModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeQuickAddModal()">×</button>
+            <button class="modal-close" onclick="closeQuickAddModal()" style="position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; cursor: pointer; color: var(--muted);">×</button>
             <div class="modal-header">Add to <span id="quickAddDate"></span></div>
             <div style="display: flex; gap: 8px; margin-bottom: 20px;">
                 <button type="button" class="btn-primary" onclick="quickAddType('AL')">📅 AL</button>
@@ -2057,7 +2057,8 @@
                     })
                     .then(res => res.json())
                     .then(() => {
-                        document.getElementById('eventForm').reset();
+                        document.getElementById('eventDate').value = '';
+                        document.getElementById('eventName').value = '';
                         editingEventId = null;
                         fetchData();
                     })
@@ -2077,7 +2078,9 @@
                 })
                 .then(res => res.json())
                 .then(() => {
+                    document.getElementById('eventDate').value = '';
                     document.getElementById('eventName').value = '';
+                    editingEventId = null;
                     fetchData();
                 })
                 .catch(err => console.error('Error adding event:', err));
