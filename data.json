@@ -113,13 +113,21 @@
       "date": "2026-04-19",
       "halfDay": "full",
       "createdAt": "2026-04-21T18:04:31.848Z"
+    },
+    {
+      "id": "Varina-AL-2026-04-18-1776799646377",
+      "colleague": "Varina",
+      "type": "AL",
+      "date": "2026-04-18",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T19:27:26.377Z"
     }
   ],
   "events": [
     {
-      "id": "event-1776761784291",
-      "date": "2026-04-17",
-      "name": "Team building "
+      "id": "event-1776798662689",
+      "date": "2026-04-09",
+      "name": "team building2"
     }
   ]
 }

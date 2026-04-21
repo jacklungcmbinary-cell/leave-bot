@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Version: 3.2.0 - FORCE UPDATE - Fixed halfDay comparison logic -->
+    <!-- Version: 3.3.0 - COMPLETE REWRITE - Event logic now mirrors AL/EL pattern with simple edit/delete -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, no-cache">
-    <title>CM Binary Digital Team - Leave Management Bot v3.2.0 [1776766692]</title>
+    <title>CM Binary Digital Team - Leave Management Bot v3.3.0 [1776766692]</title>
     <style>
         * {
             margin: 0;
@@ -1380,6 +1380,13 @@
                     events.push(message.event);
                     renderCalendar();
                     displayEvents();
+                } else if (message.type === 'updateEvent') {
+                    const index = events.findIndex(e => e.id === message.event.id);
+                    if (index !== -1) {
+                        events[index] = message.event;
+                    }
+                    renderCalendar();
+                    displayEvents();
                 } else if (message.type === 'removeEvent') {
                     events = events.filter(e => e.id !== message.id);
                     renderCalendar();
@@ -2013,14 +2020,24 @@
                 });
                 
                 dayEvents.forEach(event => {
-                    html += `<div class="event-badge" onclick="editEvent('${event.id}')" style="cursor: pointer;">${event.name}</div>`;
+                    html += `<div class="event-badge" onclick="editEvent('${event.id}'); return false;" style="cursor: pointer;">${event.name}</div>`;
                 });
                 
                 html += '</div>';
 
                 dayDiv.innerHTML = html;
                 dayDiv.onclick = (e) => {
-                    if (e.target.classList.contains('leave-badge') || e.target.classList.contains('event-badge') || e.target.classList.contains('holiday-badge')) {
+                    // Check if clicking on event badge or its children
+                    const eventBadge = e.target.closest('.event-badge');
+                    if (eventBadge) {
+                        const eventId = eventBadge.getAttribute('data-event-id');
+                        if (eventId) {
+                            editEvent(eventId);
+                            return;
+                        }
+                    }
+                    // Don't open modal if clicking on badges or their children
+                    if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) {
                         return;
                     }
                     openQuickAddModal(dateISO);
@@ -2051,60 +2068,53 @@
                 return;
             }
             
+            // If editing an existing event, use PUT
             if (editingEventId) {
-                const event = events.find(e => e.id === editingEventId);
-                if (event) {
-                    event.date = date;
-                    event.name = name;
-                    
-                    fetch(`/api/event/${editingEventId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(event)
-                    })
-                    .then(res => res.json())
-                    .then(() => {
-                        document.getElementById('eventDate').value = '';
-                        document.getElementById('eventName').value = '';
-                        editingEventId = null;
-                        fetchData();
-                    })
-                    .catch(err => console.error('Error updating event:', err));
-                }
+                fetch(`/api/event/${editingEventId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, name })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Update failed: ' + res.status);
+                    return res.json();
+                })
+                .then(() => {
+                    clearEventForm();
+                    alert('Event updated successfully!');
+                })
+                .catch(err => {
+                    console.error('Error updating event:', err);
+                    alert('Error updating event: ' + err.message);
+                });
             } else {
-                const event = {
-                    id: `event-${Date.now()}`,
-                    date,
-                    name
-                };
-                
+                // Create new event
                 fetch('/api/event', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(event)
+                    body: JSON.stringify({ date, name })
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('Create failed: ' + res.status);
+                    return res.json();
+                })
                 .then(() => {
-                    document.getElementById('eventDate').value = '';
-                    document.getElementById('eventName').value = '';
-                    editingEventId = null;
-                    fetchData();
+                    clearEventForm();
+                    alert('Event added successfully!');
                 })
-                .catch(err => console.error('Error adding event:', err));
+                .catch(err => {
+                    console.error('Error adding event:', err);
+                    alert('Error adding event: ' + err.message);
+                });
             }
         }
-
-        function addNewEvent() {
-            // Clear form and scroll to it
-            document.getElementById('eventDate').value = '';
+        
+        function clearEventForm() {
+            document.getElementById('eventDate').value = getTodayISO();
             document.getElementById('eventName').value = '';
             editingEventId = null;
-            
-            const formContainer = document.querySelector('[id="eventDate"]').closest('.card');
-            if (formContainer) {
-                formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            document.getElementById('eventDate').focus();
+            document.getElementById('btnAddEvent').textContent = translations[currentLanguage].btnAddEvent || 'Add Event';
+            fetchData();
         }
         
         function editEvent(id) {
@@ -2115,8 +2125,11 @@
             document.getElementById('eventDate').value = event.date;
             document.getElementById('eventName').value = event.name;
             
+            // Update button text to indicate editing
+            document.getElementById('btnAddEvent').textContent = translations[currentLanguage].btnUpdateEvent || 'Update Event';
+            
             // Scroll to form and highlight
-            const formContainer = document.querySelector('[id="eventDate"]').closest('.card');
+            const formContainer = document.getElementById('eventDate').closest('.card');
             if (formContainer) {
                 formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 formContainer.style.boxShadow = '0 0 10px rgba(30, 64, 175, 0.3)';
@@ -2145,7 +2158,7 @@
                         <strong>${event.name}</strong> - ${formatDate(event.date)}
                     </div>
                     <div class="leave-item-actions">
-                        <button class="btn-secondary" onclick="editEvent('${event.id}')">${t.edit}</button>
+                        <button class="btn-edit" onclick="editEvent('${event.id}')">${t.edit}</button>
                         <button class="btn-danger" onclick="deleteEvent('${event.id}')">${t.delete}</button>
                     </div>
                 </div>`;
@@ -2157,12 +2170,20 @@
         function deleteEvent(id) {
             if (confirm('Delete this event?')) {
                 fetch(`/api/event/${id}`, { method: 'DELETE' })
-                    .then(() => {
-                        events = events.filter(e => e.id !== id);
-                        renderCalendar();
-                        displayEvents();
+                    .then(res => {
+                        if (!res.ok) throw new Error('Delete failed: ' + res.status);
+                        return res.json();
                     })
-                    .catch(err => console.error('Error deleting event:', err));
+                    .then(() => {
+                        if (editingEventId === id) {
+                            clearEventForm();
+                        }
+                        fetchData();
+                    })
+                    .catch(err => {
+                        console.error('Error deleting event:', err);
+                        alert('Error deleting event: ' + err.message);
+                    });
             }
         }
         
@@ -2364,6 +2385,21 @@
                 return;
             }
 
+            // For AL/EL, fetch latest data before validation
+            if (quickAddCurrentType !== 'EVENT') {
+                fetch('/api/leave')
+                    .then(res => res.json())
+                    .then(data => {
+                        leaveRecords = data || [];
+                        proceedWithQuickAdd();
+                    })
+                    .catch(err => {
+                        console.error('Error fetching leave records:', err);
+                        proceedWithQuickAdd();
+                    });
+                return;
+            }
+
             if (quickAddCurrentType === 'EVENT') {
                 const eventName = document.getElementById('quickAddEventName').value;
                 if (!eventName) {
@@ -2388,34 +2424,45 @@
                     fetchData();
                 })
                 .catch(err => console.error('Error adding event:', err));
-            } else {
-                const colleague = document.getElementById('quickAddColleague').value;
-                if (!colleague) {
-                    alert('Please select colleague');
-                    return;
-                }
-                
-                const leave = {
-                    id: `leave-${Date.now()}`,
-                    date: quickAddDate,
-                    colleague,
-                    type: quickAddCurrentType,
-                    halfDay: quickAddCurrentType === 'AL' ? quickAddHalfDay : null,
-                    createdAt: new Date().toISOString()
-                };
-                
-                fetch('/api/leave', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(leave)
-                })
-                .then(res => res.json())
-                .then(() => {
-                    closeQuickAddModal();
-                    fetchData();
-                })
-                .catch(err => console.error('Error adding leave:', err));
             }
+        }
+        
+        function proceedWithQuickAdd() {
+            const colleague = document.getElementById('quickAddColleague').value;
+            if (!colleague) {
+                alert('Please select colleague');
+                return;
+            }
+            
+            // Validate using the same rules as the main form
+            const validation = validateLeave(colleague, quickAddCurrentType, [quickAddDate], quickAddCurrentType === 'AL' ? quickAddHalfDay : null);
+            
+            if (!validation.passed) {
+                const failedRules = validation.rules.filter(r => !r.passed).map(r => r.rule).join('\n');
+                alert('Cannot add leave:\n\n' + failedRules);
+                return;
+            }
+            
+            const leave = {
+                id: `leave-${Date.now()}`,
+                date: quickAddDate,
+                colleague,
+                type: quickAddCurrentType,
+                halfDay: quickAddCurrentType === 'AL' ? quickAddHalfDay : null,
+                createdAt: new Date().toISOString()
+            };
+            
+            fetch('/api/leave', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(leave)
+            })
+            .then(res => res.json())
+            .then(() => {
+                closeQuickAddModal();
+                fetchData();
+            })
+            .catch(err => console.error('Error adding leave:', err));
         }
 
         function updateAdminTab() {
