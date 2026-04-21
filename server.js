@@ -77,6 +77,13 @@ app.post('/api/leave', (req, res) => {
   res.json(record);
 });
 
+app.get('/api/event', (req, res) => {
+  if (!data.events) {
+    data.events = [];
+  }
+  res.json(data.events);
+});
+
 app.post('/api/event', (req, res) => {
   const { date, name } = req.body;
   
@@ -105,6 +112,37 @@ app.post('/api/event', (req, res) => {
 
   res.json(event);
 });
+
+app.put('/api/event/:id', (req, res) => {
+  const { id } = req.params;
+  const { date, name } = req.body;
+  
+  if (!date || !name) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (!data.events) {
+    data.events = [];
+  }
+
+  const event = data.events.find(e => e.id === id);
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found' });
+  }
+
+  event.date = date;
+  event.name = name;
+  saveData(data);
+
+  // Broadcast to all connected clients
+  broadcastUpdate({
+    type: 'updateEvent',
+    event
+  });
+
+  res.json(event);
+});
+
 
 app.delete('/api/event/:id', (req, res) => {
   const { id } = req.params;

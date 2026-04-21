@@ -1046,8 +1046,10 @@
     <!-- Quick Add Modal -->
     <div class="modal" id="quickAddModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeQuickAddModal()" style="position: absolute; top: 10px; right: 10px; font-size: 32px; background: none; border: none; cursor: pointer; color: var(--error); font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; hover: background-color: rgba(239, 68, 68, 0.1);">×</button>
-            <div class="modal-header">Add to <span id="quickAddDate"></span></div>
+            <div class="modal-header" style="position: relative;">
+                <span>Add to <span id="quickAddDate"></span></span>
+                <button class="modal-close" onclick="closeQuickAddModal()" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 28px; background: none; border: none; cursor: pointer; color: var(--error); font-weight: bold; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">×</button>
+            </div>
             <div style="display: flex; gap: 8px; margin-bottom: 20px;">
                 <button type="button" class="btn-primary" onclick="quickAddType('AL')">📅 AL</button>
                 <button type="button" class="btn-primary" onclick="quickAddType('EL')">⏰ EL</button>
