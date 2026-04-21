@@ -966,7 +966,10 @@
             </div>
 
             <div class="card">
-                <h3 id="titleEvents">📅 Events</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 id="titleEvents" style="margin: 0;">📅 Events</h3>
+                    <button class="btn-primary" onclick="addNewEvent()" id="btnAddNewEvent">+ Add Event</button>
+                </div>
                 <div id="eventsList"></div>
             </div>
         </div>
@@ -1043,7 +1046,7 @@
     <!-- Quick Add Modal -->
     <div class="modal" id="quickAddModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeQuickAddModal()" style="position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; cursor: pointer; color: var(--muted);">×</button>
+            <button class="modal-close" onclick="closeQuickAddModal()" style="position: absolute; top: 10px; right: 10px; font-size: 32px; background: none; border: none; cursor: pointer; color: var(--error); font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; hover: background-color: rgba(239, 68, 68, 0.1);">×</button>
             <div class="modal-header">Add to <span id="quickAddDate"></span></div>
             <div style="display: flex; gap: 8px; margin-bottom: 20px;">
                 <button type="button" class="btn-primary" onclick="quickAddType('AL')">📅 AL</button>
@@ -2087,6 +2090,19 @@
             }
         }
 
+        function addNewEvent() {
+            // Clear form and scroll to it
+            document.getElementById('eventDate').value = '';
+            document.getElementById('eventName').value = '';
+            editingEventId = null;
+            
+            const formContainer = document.querySelector('[id="eventDate"]').closest('.card');
+            if (formContainer) {
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            document.getElementById('eventDate').focus();
+        }
+        
         let editingEventId = null;
         
         function editEvent(id) {
@@ -2096,6 +2112,16 @@
             editingEventId = id;
             document.getElementById('eventDate').value = event.date;
             document.getElementById('eventName').value = event.name;
+            
+            // Scroll to form and highlight
+            const formContainer = document.querySelector('[id="eventDate"]').closest('.card');
+            if (formContainer) {
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                formContainer.style.boxShadow = '0 0 10px rgba(30, 64, 175, 0.3)';
+                setTimeout(() => {
+                    formContainer.style.boxShadow = '';
+                }, 2000);
+            }
             document.getElementById('eventDate').focus();
         }
         
