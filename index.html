@@ -1040,6 +1040,49 @@
         </div>
     </div>
 
+    <!-- Quick Add Modal -->
+    <div class="modal" id="quickAddModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeQuickAddModal()">×</button>
+            <div class="modal-header">Add to <span id="quickAddDate"></span></div>
+            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <button type="button" class="btn-primary" onclick="quickAddType('AL')">📅 AL</button>
+                <button type="button" class="btn-primary" onclick="quickAddType('EL')">⏰ EL</button>
+                <button type="button" class="btn-primary" onclick="quickAddType('EVENT')">📌 Event</button>
+            </div>
+            <div id="quickAddForm" style="display: none;">
+                <div class="form-group">
+                    <label id="quickAddLabelColleague">Colleague</label>
+                    <select id="quickAddColleague">
+                        <option value="">Select your name</option>
+                        <option value="Varina">Varina</option>
+                        <option value="Jenny">Jenny</option>
+                        <option value="Aaron">Aaron</option>
+                        <option value="Jack">Jack</option>
+                        <option value="Holly">Holly</option>
+                        <option value="Rita">Rita</option>
+                    </select>
+                </div>
+                <div class="form-group" id="quickAddHalfDaySection" style="display: none;">
+                    <label id="quickAddLabelHalfDay">Half Day</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-secondary" onclick="setQuickAddHalfDay('full')">Full Day</button>
+                        <button type="button" class="btn-secondary" onclick="setQuickAddHalfDay('am')">AM</button>
+                        <button type="button" class="btn-secondary" onclick="setQuickAddHalfDay('pm')">PM</button>
+                    </div>
+                </div>
+                <div class="form-group" id="quickAddEventNameSection" style="display: none;">
+                    <label id="quickAddLabelEventName">Event Name</label>
+                    <input type="text" id="quickAddEventName" placeholder="e.g., Team Meeting">
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-primary" onclick="saveQuickAdd()">Add</button>
+                    <button type="button" class="btn-secondary" onclick="closeQuickAddModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Translations
         const translations = {
@@ -1965,12 +2008,18 @@
                 });
                 
                 dayEvents.forEach(event => {
-                    html += `<div class="event-badge">${event.name}</div>`;
+                    html += `<div class="event-badge" onclick="editEvent('${event.id}')" style="cursor: pointer;">${event.name}</div>`;
                 });
                 
                 html += '</div>';
 
                 dayDiv.innerHTML = html;
+                dayDiv.onclick = (e) => {
+                    if (e.target.classList.contains('leave-badge') || e.target.classList.contains('event-badge') || e.target.classList.contains('holiday-badge')) {
+                        return;
+                    }
+                    openQuickAddModal(dateISO);
+                };
                 calendarDays.appendChild(dayDiv);
                 current.setDate(current.getDate() + 1);
             }
@@ -2212,6 +2261,118 @@
         function deleteLeave(id) {
             fetch(`/api/leave/${id}`, { method: 'DELETE' })
                 .catch(err => console.error('Error deleting leave:', err));
+        }
+
+        let quickAddDate = null;
+        let quickAddCurrentType = null;
+        let quickAddHalfDay = 'full';
+
+        function openQuickAddModal(dateISO) {
+            quickAddDate = dateISO;
+            quickAddCurrentType = null;
+            quickAddHalfDay = 'full';
+            document.getElementById('quickAddDate').textContent = formatDate(dateISO);
+            document.getElementById('quickAddForm').style.display = 'none';
+            document.getElementById('quickAddModal').classList.add('active');
+        }
+
+        function closeQuickAddModal() {
+            document.getElementById('quickAddModal').classList.remove('active');
+            quickAddDate = null;
+            quickAddCurrentType = null;
+        }
+
+        function quickAddType(type) {
+            quickAddCurrentType = type;
+            document.getElementById('quickAddForm').style.display = 'block';
+            document.getElementById('quickAddHalfDaySection').style.display = type === 'AL' ? 'block' : 'none';
+            document.getElementById('quickAddEventNameSection').style.display = type === 'EVENT' ? 'block' : 'none';
+            document.getElementById('quickAddColleague').style.display = type === 'EVENT' ? 'none' : 'block';
+            document.getElementById('quickAddLabelColleague').style.display = type === 'EVENT' ? 'none' : 'block';
+            
+            if (type === 'AL') {
+                updateQuickAddHalfDayButtons();
+            }
+        }
+
+        function setQuickAddHalfDay(value) {
+            quickAddHalfDay = value;
+            updateQuickAddHalfDayButtons();
+        }
+
+        function updateQuickAddHalfDayButtons() {
+            const fullBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(1)');
+            const amBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(2)');
+            const pmBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(3)');
+            
+            [fullBtn, amBtn, pmBtn].forEach(btn => {
+                btn.style.backgroundColor = '';
+                btn.style.color = '';
+            });
+            
+            if (quickAddHalfDay === 'full') fullBtn.style.backgroundColor = 'var(--primary)', fullBtn.style.color = 'white';
+            if (quickAddHalfDay === 'am') amBtn.style.backgroundColor = 'var(--primary)', amBtn.style.color = 'white';
+            if (quickAddHalfDay === 'pm') pmBtn.style.backgroundColor = 'var(--primary)', pmBtn.style.color = 'white';
+        }
+
+        function saveQuickAdd() {
+            if (!quickAddDate || !quickAddCurrentType) {
+                alert('Please select a type');
+                return;
+            }
+
+            if (quickAddCurrentType === 'EVENT') {
+                const eventName = document.getElementById('quickAddEventName').value;
+                if (!eventName) {
+                    alert('Please enter event name');
+                    return;
+                }
+                
+                const event = {
+                    id: `event-${Date.now()}`,
+                    date: quickAddDate,
+                    name: eventName
+                };
+                
+                fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(event)
+                })
+                .then(res => res.json())
+                .then(() => {
+                    closeQuickAddModal();
+                    fetchData();
+                })
+                .catch(err => console.error('Error adding event:', err));
+            } else {
+                const colleague = document.getElementById('quickAddColleague').value;
+                if (!colleague) {
+                    alert('Please select colleague');
+                    return;
+                }
+                
+                const leave = {
+                    id: `leave-${Date.now()}`,
+                    date: quickAddDate,
+                    colleague,
+                    type: quickAddCurrentType,
+                    halfDay: quickAddCurrentType === 'AL' ? quickAddHalfDay : null,
+                    createdAt: new Date().toISOString()
+                };
+                
+                fetch('/api/leave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(leave)
+                })
+                .then(res => res.json())
+                .then(() => {
+                    closeQuickAddModal();
+                    fetchData();
+                })
+                .catch(err => console.error('Error adding leave:', err));
+            }
         }
 
         function updateAdminTab() {
