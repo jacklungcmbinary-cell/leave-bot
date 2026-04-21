@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
@@ -7,6 +8,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+console.log('Using HTTP - proxy will handle HTTPS');
 
 // Data storage
 const DATA_FILE = path.join(__dirname, 'data.json');

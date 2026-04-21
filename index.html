@@ -1991,24 +1991,58 @@
                 return;
             }
             
-            const event = {
-                id: `event-${Date.now()}`,
-                date,
-                name
-            };
-            
-            fetch('/api/event', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event)
-            })
-            .then(res => res.json())
-            .then(() => {
-                document.getElementById('eventName').value = '';
-            })
-            .catch(err => console.error('Error adding event:', err));
+            if (editingEventId) {
+                const event = events.find(e => e.id === editingEventId);
+                if (event) {
+                    event.date = date;
+                    event.name = name;
+                    
+                    fetch(`/api/event/${editingEventId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(event)
+                    })
+                    .then(res => res.json())
+                    .then(() => {
+                        document.getElementById('eventForm').reset();
+                        editingEventId = null;
+                        fetchData();
+                    })
+                    .catch(err => console.error('Error updating event:', err));
+                }
+            } else {
+                const event = {
+                    id: `event-${Date.now()}`,
+                    date,
+                    name
+                };
+                
+                fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(event)
+                })
+                .then(res => res.json())
+                .then(() => {
+                    document.getElementById('eventName').value = '';
+                    fetchData();
+                })
+                .catch(err => console.error('Error adding event:', err));
+            }
         }
 
+        let editingEventId = null;
+        
+        function editEvent(id) {
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            editingEventId = id;
+            document.getElementById('eventDate').value = event.date;
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventDate').focus();
+        }
+        
         function displayEvents() {
             const container = document.getElementById('eventsList');
             const t = translations[currentLanguage];
@@ -2027,7 +2061,8 @@
                         <strong>${event.name}</strong> - ${formatDate(event.date)}
                     </div>
                     <div class="leave-item-actions">
-                        <button class="btn-danger" onclick="deleteEvent('${event.id}')">Delete</button>
+                        <button class="btn-secondary" onclick="editEvent('${event.id}')">${t.edit}</button>
+                        <button class="btn-danger" onclick="deleteEvent('${event.id}')">${t.delete}</button>
                     </div>
                 </div>`;
             });
@@ -2200,21 +2235,64 @@
             });
             document.getElementById('teamSummary').innerHTML = teamHtml;
 
-            const sorted = [...leaveRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
-            const t = translations[currentLanguage];
-            let allLeavesHtml = sorted.length === 0 ? `<p style="color: var(--muted);">${t.noLeaves}</p>` : '';
+            // Get current month
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
             
-            sorted.forEach(leave => {
-                allLeavesHtml += `<div class="leave-item">
-                    <div class="leave-item-info">
-                        <strong>${leave.colleague}</strong> - ${leave.type} on ${formatDate(leave.date)}
-                        ${leave.halfDay && leave.halfDay !== 'full' ? ` (${leave.halfDay.toUpperCase()})` : ''}
-                    </div>
-                    <div class="leave-item-actions">
-                        <button class="btn-danger" onclick="deleteLeave('${leave.id}')">Delete</button>
-                    </div>
-                </div>`;
+            // Filter leaves for current month only
+            const currentMonthLeaves = leaveRecords.filter(r => {
+                const [year, month] = r.date.split('-');
+                return parseInt(year) === currentYear && parseInt(month) === currentMonth;
             });
+            
+            const t = translations[currentLanguage];
+            let allLeavesHtml = '';
+            
+            if (currentMonthLeaves.length === 0) {
+                allLeavesHtml = `<p style="color: var(--muted);">${t.noLeaves}</p>`;
+            } else {
+                // Group by type
+                const elLeaves = currentMonthLeaves.filter(r => r.type === 'EL');
+                const alLeaves = currentMonthLeaves.filter(r => r.type === 'AL');
+                
+                // EL section
+                if (elLeaves.length > 0) {
+                    allLeavesHtml += '<div style="margin-bottom: 20px;"><h4 style="color: var(--warning); margin-bottom: 10px;">EL:</h4>';
+                    const elByColleague = {};
+                    elLeaves.forEach(leave => {
+                        if (!elByColleague[leave.colleague]) {
+                            elByColleague[leave.colleague] = [];
+                        }
+                        const day = leave.date.split('-')[2];
+                        elByColleague[leave.colleague].push(day);
+                    });
+                    
+                    Object.entries(elByColleague).forEach(([colleague, days]) => {
+                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${days.join(', ')}</div>`;
+                    });
+                    allLeavesHtml += '</div>';
+                }
+                
+                // AL section
+                if (alLeaves.length > 0) {
+                    allLeavesHtml += '<div><h4 style="color: var(--primary); margin-bottom: 10px;">AL:</h4>';
+                    const alByColleague = {};
+                    alLeaves.forEach(leave => {
+                        if (!alByColleague[leave.colleague]) {
+                            alByColleague[leave.colleague] = [];
+                        }
+                        const day = leave.date.split('-')[2];
+                        const suffix = leave.halfDay && leave.halfDay !== 'full' ? ` (${leave.halfDay.toUpperCase()})` : '';
+                        alByColleague[leave.colleague].push(day + suffix);
+                    });
+                    
+                    Object.entries(alByColleague).forEach(([colleague, days]) => {
+                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${days.join(', ')}</div>`;
+                    });
+                    allLeavesHtml += '</div>';
+                }
+            }
             
             document.getElementById('allLeavesList').innerHTML = allLeavesHtml;
         }
