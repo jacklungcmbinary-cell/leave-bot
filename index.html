@@ -2215,6 +2215,22 @@
                 halfDaySection.style.display = 'none';
             }
             
+            // Add change listener to type selector
+            const typeSelect = document.getElementById('editType');
+            typeSelect.onchange = function() {
+                const newType = this.value;
+                const halfDaySection = document.getElementById('editHalfDaySection');
+                
+                if (newType === 'AL') {
+                    halfDaySection.style.display = 'block';
+                    editingHalfDay = 'full';
+                    updateEditHalfDayButtons();
+                } else {
+                    halfDaySection.style.display = 'none';
+                    editingHalfDay = null;
+                }
+            };
+            
             document.getElementById('editModal').classList.add('active');
         }
         
@@ -2251,9 +2267,14 @@
                 return;
             }
             
-            const colleague = oldLeave.colleague;
-            const type = oldLeave.type;
+            const colleague = document.getElementById('editColleague').value;
+            const type = document.getElementById('editType').value;
             const halfDay = type === 'AL' ? editingHalfDay : null;
+            
+            if (!colleague || !type) {
+                alert('Please select colleague and type');
+                return;
+            }
             
             console.log('Saving edit:', { editingLeaveId, oldLeave, newDate, halfDay });
             
@@ -2494,6 +2515,7 @@
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
+            const monthName = now.toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { month: 'long', year: 'numeric' });
             
             // Filter leaves for current month only
             const currentMonthLeaves = leaveRecords.filter(r => {
@@ -2519,12 +2541,13 @@
                         if (!elByColleague[leave.colleague]) {
                             elByColleague[leave.colleague] = [];
                         }
-                        const day = leave.date.split('-')[2];
+                        const day = parseInt(leave.date.split('-')[2]);
                         elByColleague[leave.colleague].push(day);
                     });
                     
                     Object.entries(elByColleague).forEach(([colleague, days]) => {
-                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${days.join(', ')}</div>`;
+                        const sortedDays = days.sort((a, b) => a - b);
+                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${sortedDays.join(', ')}</div>`;
                     });
                     allLeavesHtml += '</div>';
                 }
@@ -2537,19 +2560,29 @@
                         if (!alByColleague[leave.colleague]) {
                             alByColleague[leave.colleague] = [];
                         }
-                        const day = leave.date.split('-')[2];
+                        const day = parseInt(leave.date.split('-')[2]);
                         const suffix = leave.halfDay && leave.halfDay !== 'full' ? ` (${leave.halfDay.toUpperCase()})` : '';
-                        alByColleague[leave.colleague].push(day + suffix);
+                        alByColleague[leave.colleague].push({ day, suffix });
                     });
                     
-                    Object.entries(alByColleague).forEach(([colleague, days]) => {
-                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${days.join(', ')}</div>`;
+                    Object.entries(alByColleague).forEach(([colleague, items]) => {
+                        const sortedItems = items.sort((a, b) => a.day - b.day);
+                        const displayDays = sortedItems.map(item => item.day + item.suffix).join(', ');
+                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${displayDays}</div>`;
                     });
                     allLeavesHtml += '</div>';
                 }
             }
             
+            // Update title with current month
+            document.getElementById('titleAllLeaves').textContent = (currentLanguage === 'zh' ? '📋 所有請假申請 - ' : '📋 All Leave Requests - ') + monthName;
             document.getElementById('allLeavesList').innerHTML = allLeavesHtml;
+            
+            // Update team summary title with current month
+            const teamSummaryTitle = document.querySelector('.card:has(#teamSummary) h3');
+            if (teamSummaryTitle) {
+                teamSummaryTitle.textContent = (currentLanguage === 'zh' ? '👥 團隊請假摘要 - ' : '👥 Team Leave Summary - ') + monthName;
+            }
         }
 
         function exportCSV() {

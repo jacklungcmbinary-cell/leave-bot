@@ -43,14 +43,6 @@
       "createdAt": "2026-04-21T09:05:56.670Z"
     },
     {
-      "id": "Rita-EL-2026-04-24-1776766257016",
-      "colleague": "Rita",
-      "type": "EL",
-      "date": "2026-04-24",
-      "halfDay": null,
-      "createdAt": "2026-04-21T10:10:57.016Z"
-    },
-    {
       "id": "Holly-EL-2026-04-15-1776767050118",
       "colleague": "Holly",
       "type": "EL",
@@ -121,6 +113,46 @@
       "date": "2026-04-18",
       "halfDay": "full",
       "createdAt": "2026-04-21T19:27:26.377Z"
+    },
+    {
+      "id": "Rita-EL-2026-04-15-1776800084970",
+      "colleague": "Rita",
+      "type": "EL",
+      "date": "2026-04-15",
+      "halfDay": null,
+      "createdAt": "2026-04-21T19:34:44.970Z"
+    },
+    {
+      "id": "Jack-EL-2026-04-16-1776800111291",
+      "colleague": "Jack",
+      "type": "EL",
+      "date": "2026-04-16",
+      "halfDay": null,
+      "createdAt": "2026-04-21T19:35:11.291Z"
+    },
+    {
+      "id": "Jenny-AL-2026-04-24-1776800223871",
+      "colleague": "Jenny",
+      "type": "AL",
+      "date": "2026-04-24",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T19:37:03.871Z"
+    },
+    {
+      "id": "Jack-AL-2026-04-24-1776800230796",
+      "colleague": "Jack",
+      "type": "AL",
+      "date": "2026-04-24",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T19:37:10.796Z"
+    },
+    {
+      "id": "Rita-EL-2026-04-24-1776800245948",
+      "colleague": "Rita",
+      "type": "EL",
+      "date": "2026-04-24",
+      "halfDay": null,
+      "createdAt": "2026-04-21T19:37:25.948Z"
     }
   ],
   "events": [
