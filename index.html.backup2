@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CM Binary Digital Team - Leave Management Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --accent: #f59e0b;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --success: #22c55e;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --foreground: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --gradient-start: #1e40af;
+            --gradient-end: #3b82f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header > div:first-child {
+            flex: 1;
+        }
+
+        header h1 {
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .language-selector {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .language-selector:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background-color: #22c55e;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-button {
+            padding: 14px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-button:hover {
+            color: var(--foreground);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-light);
+        }
+
+        .card h3 {
+            margin-bottom: 12px;
+            color: var(--foreground);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .summary-item {
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(59, 130, 246, 0.02) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .summary-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            color: var(--muted);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        select, input[type="date"], input[type="text"], input[type="number"], input[type="month"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10, 126, 164, 0.1);
+        }
+
+        .date-range-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .date-range-container input {
+            flex: 1;
+        }
+
+        .al-date-selector {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .al-date-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .al-date-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .al-date-row input[type="date"] {
+            margin: 0;
+        }
+
+        .al-half-day-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .half-day-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .half-day-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .half-day-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .al-balance-box {
+            background: linear-gradient(135deg, rgba(10, 126, 164, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .al-balance-title {
+            font-size: 0.9em;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .al-balance-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .al-balance-input input {
+            width: 100px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .al-balance-info {
+            font-size: 0.85em;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.15);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: var(--surface);
+            color: var(--foreground);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .btn-danger {
+            background-color: var(--error);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.85em;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-edit {
+            background-color: var(--accent);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.85em;
+        }
+
+        .btn-edit:hover {
+            background-color: #d97706;
+        }
+
+        .validation-result {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .validation-result.passed {
+            background-color: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .validation-result.failed {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .rule-check {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .rule-check.passed {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #166534;
+        }
+
+        .rule-check.failed {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5em;
+            color: var(--foreground);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 12px;
+        }
+
+        .calendar-nav button {
+            padding: 8px 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .calendar-nav button:hover {
+            background-color: #086b8f;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 12px 0;
+            font-size: 0.9em;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            max-height: 140px;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: var(--surface);
+            border-color: var(--primary);
+        }
+
+        .calendar-day.other-month {
+            background-color: #fafafa;
+            color: var(--muted);
+        }
+
+        .calendar-day.holiday {
+            background-color: #fee2e2;
+            border-color: var(--error);
+        }
+
+        .calendar-day.event {
+            background-color: #fef3c7;
+            border-color: var(--warning);
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+
+        .calendar-day-leaves {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .leave-badge {
+            font-size: 0.7em;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: white;
+            cursor: pointer;
+        }
+
+        .leave-badge.al {
+            background-color: var(--primary);
+        }
+
+        .leave-badge.el {
+            background-color: var(--warning);
+        }
+
+        .event-badge {
+            font-size: 0.65em;
+            padding: 1px 3px;
+            border-radius: 2px;
+            background-color: var(--warning);
+            color: white;
+            margin-top: 2px;
+        }
+
+        .holiday-badge {
+            font-size: 0.65em;
+            padding: 1px 3px;
+            border-radius: 2px;
+            background-color: var(--error);
+            color: white;
+            margin-top: 2px;
+        }
+
+        .colleague-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .colleague-card:hover {
+            background-color: var(--border);
+            transform: translateX(4px);
+        }
+
+        .colleague-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .colleague-info h4 {
+            margin-bottom: 4px;
+        }
+
+        .colleague-info p {
+            font-size: 0.85em;
+            color: var(--muted);
+        }
+
+        .rule-item {
+            padding: 12px;
+            border-left: 4px solid var(--primary);
+            background-color: rgba(10, 126, 164, 0.05);
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .buddy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .buddy-table th,
+        .buddy-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .buddy-table th {
+            background-color: var(--surface);
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .buddy-table tr:hover {
+            background-color: var(--surface);
+        }
+
+        .leave-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .leave-item-info {
+            flex: 1;
+        }
+
+        .leave-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--foreground);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .header-controls {
+                justify-content: center;
+                margin-top: 16px;
+                width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                flex: 1;
+                text-align: center;
+            }
+
+            .al-date-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1 id="appTitle">🤖 Leave Bot</h1>
+                <p id="appSubtitle">CM Binary Digital Team</p>
+                <p class="subtitle" id="appSubtitle2">Leave Management System</p>
+            </div>
+            <div class="header-controls">
+                <select class="language-selector" id="languageSelector" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="zh">繁體中文</option>
+                </select>
+                <div class="connection-status">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('app')" id="tabRequest">📝 Request</button>
+            <button class="tab-button" onclick="switchTab('calendar')" id="tabCalendar">📅 Calendar</button>
+            <button class="tab-button" onclick="switchTab('admin')" id="tabAdmin">📊 Admin</button>
+        </div>
+
+        <!-- Request Tab -->
+        <div id="app" class="tab-content active">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-number" id="alToday">0</div>
+                    <div class="summary-label" id="labelAlToday">AL Today</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="elToday">0</div>
+                    <div class="summary-label" id="labelElToday">EL Today</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalToday">0</div>
+                    <div class="summary-label" id="labelTotalToday">Total</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3 id="titleRequest">📝 Request Leave</h3>
+                    
+                    <!-- AL Balance Box -->
+                    <div class="al-balance-box" id="alBalanceBox" style="display: none;">
+                        <div class="al-balance-title" id="labelAlBalance">Your AL Balance</div>
+                        <div class="al-balance-input">
+                            <input type="number" id="alBalance" min="0" max="30" value="0" placeholder="Enter your AL balance" onchange="updateALBalanceDisplay()" oninput="updateALBalanceDisplay()">
+                            <span id="labelDays">days</span>
+                        </div>
+                        <div class="al-balance-info" id="balanceInfo"><strong>0</strong> days applied | <strong>0</strong> days remaining</div>
+                    </div>
+
+                    <form id="leaveForm">
+                        <div class="form-group">
+                            <label for="colleague" id="labelColleague">Who are you?</label>
+                            <select id="colleague" required onchange="updateAlBalanceBox()">
+                                <option value="">Select your name</option>
+                                <option value="Varina">Varina</option>
+                                <option value="Jenny">Jenny</option>
+                                <option value="Aaron">Aaron</option>
+                                <option value="Jack">Jack</option>
+                                <option value="Holly">Holly</option>
+                                <option value="Rita">Rita</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leaveType" id="labelLeaveType">Leave Type</label>
+                            <select id="leaveType" required onchange="updateDateSelectionUI()">
+                                <option value="AL" id="optionAL">Annual Leave (AL)</option>
+                                <option value="EL" id="optionEL">Early Leave (EL)</option>
+                            </select>
+                        </div>
+
+                        <!-- AL Date Selection -->
+                        <div id="alDateSelection" class="form-group">
+                            <label id="labelSelectMonth">Select Month</label>
+                            <input type="month" id="alMonth" onchange="generateALDateSelector()">
+                            
+                            <label id="labelSelectDates" style="margin-top: 16px;">Select Date Range</label>
+                            <div class="al-date-range-selector" id="alDateRangeSelector"></div>
+                        </div>
+
+                        <!-- EL Date Selection -->
+                        <div id="elDateSelection" class="form-group" style="display: none;">
+                            <label id="labelSelectMonth2">Select Month</label>
+                            <input type="month" id="elMonth" onchange="generateELCheckboxes()">
+                            
+                            <label id="labelSelectELDates" style="margin-top: 16px;">Select Dates</label>
+                            <div class="el-date-dropdown" id="elDateDropdown"></div>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="button" class="btn-primary" id="btnSubmit" onclick="validateAndSubmit()">Submit Request</button>
+                            <button type="reset" class="btn-secondary" id="btnClear" onclick="resetForm()">Clear</button>
+                        </div>
+                    </form>
+
+                    <div id="validationResult" style="margin-top: 20px;"></div>
+                </div>
+
+                <div class="card">
+                    <h3 id="titleRules">📋 House Rules</h3>
+                    <div class="rule-item" id="rule1">🚫 AL cannot clash with Rita's AL</div>
+                    <div class="rule-item" id="rule2">⚠️ Only 1x EL on Rita's AL day</div>
+                    <div class="rule-item" id="rule3">📅 Max 2x AL per day</div>
+                    <div class="rule-item" id="rule4">👥 Buddies must know all your accounts</div>
+                    <div class="rule-item" id="rule5">⏰ Max 2x EL per day</div>
+                    <div class="rule-item" id="rule6">🔢 Max 3x AL/EL per day</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleBuddies">👥 Holiday Buddies System</h3>
+                <table class="buddy-table">
+                    <thead>
+                        <tr>
+                            <th id="thColleague">Colleague</th>
+                            <th id="thBuddies">Follow-up Buddies</th>
+                            <th id="thRelease">Can Release</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buddyTable"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 id="titleMyLeaves">📊 My Leave Requests</h3>
+                <div class="form-group">
+                    <label id="labelMyLeavesColleague">Select Colleague</label>
+                    <select id="myLeavesColleague" onchange="displayMyLeaves()">
+                        <option value="">-- Select --</option>
+                        <option value="Varina">Varina</option>
+                        <option value="Jenny">Jenny</option>
+                        <option value="Aaron">Aaron</option>
+                        <option value="Jack">Jack</option>
+                        <option value="Holly">Holly</option>
+                        <option value="Rita">Rita</option>
+                    </select>
+                </div>
+                <div id="myLeavesAL"></div>
+                <div id="myLeavesEL" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div id="calendar" class="tab-content">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 id="calendarTitle">April 2026</h2>
+                    <div class="calendar-nav">
+                        <button onclick="previousMonth()" id="btnPrevious">← Previous</button>
+                        <button onclick="nextMonth()" id="btnNext">Next →</button>
+                    </div>
+                </div>
+
+                <div class="calendar-weekdays">
+                    <div class="weekday" id="weekMon">Mon</div>
+                    <div class="weekday" id="weekTue">Tue</div>
+                    <div class="weekday" id="weekWed">Wed</div>
+                    <div class="weekday" id="weekThu">Thu</div>
+                    <div class="weekday" id="weekFri">Fri</div>
+                    <div class="weekday" id="weekSat">Sat</div>
+                    <div class="weekday" id="weekSun">Sun</div>
+                </div>
+
+                <div class="calendar-days" id="calendarDays"></div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleAddEvent">📌 Add Special Event</h3>
+                <div class="form-group">
+                    <label for="eventDate" id="labelEventDate">Date</label>
+                    <input type="date" id="eventDate">
+                </div>
+                <div class="form-group">
+                    <label for="eventName" id="labelEventName">Event Name</label>
+                    <input type="text" id="eventName" placeholder="e.g., Team Meeting, Project Deadline">
+                </div>
+                <button class="btn-primary" id="btnAddEvent" onclick="addEvent()">Add Event</button>
+            </div>
+
+            <div class="card">
+                <h3 id="titleEvents">📅 Events</h3>
+                <div id="eventsList"></div>
+            </div>
+        </div>
+
+        <!-- Admin Tab -->
+        <div id="admin" class="tab-content">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-number" id="totalRequests">0</div>
+                    <div class="summary-label" id="labelTotalRequests">Total Requests</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalAL">0</div>
+                    <div class="summary-label" id="labelTotalAL">Annual Leave</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalEL">0</div>
+                    <div class="summary-label" id="labelTotalEL">Early Leave</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleTeamSummary">👥 Team Leave Summary</h3>
+                <div id="teamSummary"></div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleAllLeaves">📋 All Leave Requests</h3>
+                <div id="allLeavesList"></div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleExport">📥 Export</h3>
+                <button class="btn-primary" id="btnExport" onclick="exportCSV()">📥 Export as CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+            <div class="modal-header" id="editModalTitle">Edit Leave Request</div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label id="editLabelColleague">Colleague</label>
+                    <input type="text" id="editColleague" readonly>
+                </div>
+                <div class="form-group">
+                    <label id="editLabelType">Type</label>
+                    <input type="text" id="editType" readonly>
+                </div>
+                <div class="form-group">
+                    <label id="editLabelDate">Date</label>
+                    <input type="date" id="editDate">
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-primary" onclick="saveEditLeave()">Save</button>
+                    <button type="button" class="btn-danger" id="btnDeleteInModal" onclick="deleteLeaveFromModal()">Delete</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                appTitle: '🤖 Leave Bot',
+                appSubtitle: 'CM Binary Digital Team',
+                tabRequest: '📝 Request',
+                tabCalendar: '📅 Calendar',
+                tabAdmin: '📊 Admin',
+                labelAlToday: 'AL Today',
+                labelElToday: 'EL Today',
+                labelTotalToday: 'Total',
+                titleRequest: '📝 Request Leave',
+                labelColleague: 'Who are you?',
+                labelLeaveType: 'Leave Type',
+                optionAL: 'Annual Leave (AL)',
+                optionEL: 'Early Leave (EL)',
+                labelSelectMonth: 'Select Month',
+                labelSelectMonth2: 'Select Month',
+                labelSelectDates: 'Select Dates & Half Day',
+                labelSelectELDates: 'Select Dates (Checkbox)',
+                btnSubmit: 'Submit Request',
+                btnClear: 'Clear',
+                titleRules: '📋 House Rules',
+                titleBuddies: '👥 Holiday Buddies System',
+                thColleague: 'Colleague',
+                thBuddies: 'Follow-up Buddies',
+                thRelease: 'Can Release',
+                titleMyLeaves: '📊 My Leave Requests',
+                titleAddEvent: '📌 Add Special Event',
+                labelEventDate: 'Date',
+                labelEventName: 'Event Name',
+                btnAddEvent: 'Add Event',
+                titleEvents: '📅 Events',
+                labelTotalRequests: 'Total Requests',
+                labelTotalAL: 'Annual Leave',
+                labelTotalEL: 'Early Leave',
+                titleTeamSummary: '👥 Team Leave Summary',
+                titleAllLeaves: '📋 All Leave Requests',
+                titleExport: '📥 Export',
+                btnExport: '📥 Export as CSV',
+                editModalTitle: 'Edit Leave Request',
+                editLabelColleague: 'Colleague',
+                editLabelType: 'Type',
+                editLabelDate: 'Date',
+                btnDeleteInModal: 'Delete',
+                btnClose: 'Close',
+                btnPrevious: '← Previous',
+                btnNext: 'Next →',
+                requestApproved: '✅ Request Approved!',
+                requestRejected: '❌ Request Rejected',
+                noLeaves: 'No leave requests',
+                noEvents: 'No events',
+                connecting: 'Connecting...',
+                connected: 'Connected',
+                disconnected: 'Disconnected',
+                synced: '✓ Synced',
+                rule1: '🚫 AL cannot clash with Rita\'s AL',
+                rule2: '⚠️ Only 1x EL on Rita\'s AL day',
+                rule3: '📅 Max 2x AL per day',
+                rule4: '👥 Buddies must know all your accounts',
+                rule5: '⏰ Max 2x EL per day',
+                rule6: '🔢 Max 3x AL/EL per day',
+                labelAlBalance: 'Your AL Balance',
+                labelDays: 'days',
+                balanceInfo: 'This is private - only you can see it',
+                fullDay: 'All Day',
+                am: 'AM',
+                pm: 'PM'
+            },
+            zh: {
+                appTitle: '🤖 請假機器人',
+                appSubtitle: 'CM Binary 數位團隊',
+                tabRequest: '📝 申請',
+                tabCalendar: '📅 日曆',
+                tabAdmin: '📊 管理',
+                labelAlToday: '今天年假',
+                labelElToday: '今天早退',
+                labelTotalToday: '合計',
+                titleRequest: '📝 申請請假',
+                labelColleague: '你是誰？',
+                labelLeaveType: '假期類型',
+                optionAL: '年假 (AL)',
+                optionEL: '早退 (EL)',
+                labelSelectMonth: '選擇月份',
+                labelSelectMonth2: '選擇月份',
+                labelSelectDates: '選擇日期和半天',
+                labelSelectELDates: '選擇日期 (複選框)',
+                btnSubmit: '提交申請',
+                btnClear: '清除',
+                titleRules: '📋 規則',
+                titleBuddies: '👥 假期夥伴系統',
+                thColleague: '同事',
+                thBuddies: '跟進夥伴',
+                thRelease: '可以放假',
+                titleMyLeaves: '📊 我的請假申請',
+                titleAddEvent: '📌 新增特殊事件',
+                labelEventDate: '日期',
+                labelEventName: '事件名稱',
+                btnAddEvent: '新增事件',
+                titleEvents: '📅 事件',
+                labelTotalRequests: '總申請數',
+                labelTotalAL: '年假',
+                labelTotalEL: '早退',
+                titleTeamSummary: '👥 團隊請假摘要',
+                titleAllLeaves: '📋 所有請假申請',
+                titleExport: '📥 匯出',
+                btnExport: '📥 匯出為 CSV',
+                editModalTitle: '編輯請假申請',
+                editLabelColleague: '同事',
+                editLabelType: '類型',
+                editLabelDate: '日期',
+                btnDeleteInModal: '刪除',
+                btnClose: '關閉',
+                btnPrevious: '← 上一月',
+                btnNext: '下一月 →',
+                requestApproved: '✅ 申請已批准！',
+                requestRejected: '❌ 申請被拒絕',
+                noLeaves: '沒有請假申請',
+                noEvents: '沒有事件',
+                connecting: '連接中...',
+                connected: '已連接',
+                disconnected: '已斷開連接',
+                synced: '✓ 已同步',
+                rule1: '🚫 年假不能與 Rita 的年假衝突',
+                rule2: '⚠️ Rita 有年假時最多 1 個早退',
+                rule3: '📅 每天最多 2 個年假',
+                rule4: '👥 夥伴必須知道你的所有帳戶',
+                rule5: '⏰ 每天最多 2 個早退',
+                rule6: '🔢 每天最多 3 個年假/早退',
+                labelAlBalance: '你的年假餘額',
+                labelDays: '天',
+                balanceInfo: '這是私人的 - 只有你能看到',
+                fullDay: '全天',
+                am: '上午',
+                pm: '下午'
+            }
+        };
+
+        // Hong Kong Public Holidays 2026
+        const hkHolidays = {
+            '2026-01-01': 'New Year\'s Day',
+            '2026-02-17': 'Chinese New Year',
+            '2026-02-18': 'Chinese New Year',
+            '2026-02-19': 'Chinese New Year',
+            '2026-04-04': 'Children\'s Day',
+            '2026-04-05': 'Ching Ming Festival',
+            '2026-05-01': 'Labour Day',
+            '2026-05-14': 'Buddha\'s Birthday',
+            '2026-06-10': 'Dragon Boat Festival',
+            '2026-09-11': 'Day after Mid-Autumn Festival',
+            '2026-10-01': 'National Day',
+            '2026-10-10': 'Chung Yeung Festival',
+            '2026-12-25': 'Christmas Day'
+        };
+
+        // Data
+        const COLLEAGUES = ['Varina', 'Jenny', 'Aaron', 'Jack', 'Holly', 'Rita'];
+        const COLLEAGUE_COLORS = {
+            'Varina': '#8b5cf6',
+            'Jenny': '#ec4899',
+            'Aaron': '#3b82f6',
+            'Jack': '#f97316',
+            'Holly': '#10b981',
+            'Rita': '#ef4444'
+        };
+
+        const BUDDY_SYSTEM = {
+            'Varina': { buddies: ['Jenny', 'Jack'], canRelease: ['Holly', 'Aaron'] },
+            'Jenny': { buddies: ['Holly', 'Varina'], canRelease: ['Aaron', 'Jack'] },
+            'Aaron': { buddies: ['Holly', 'Jack'], canRelease: ['Jenny', 'Varina'] },
+            'Jack': { buddies: ['Varina', 'Aaron'], canRelease: ['Jenny', 'Holly'] },
+            'Holly': { buddies: ['Aaron', 'Jenny'], canRelease: ['Jack', 'Varina'] }
+        };
+
+        let leaveRecords = [];
+        let events = [];
+        let ws = null;
+        let isConnected = false;
+        let currentMonth = new Date();
+        let selectedALDates = {};
+        let selectedELDates = [];
+        let currentLanguage = 'zh';
+        let editingLeaveId = null;
+        let alBalances = {};
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            updateUILanguage();
+            renderCalendar();
+            updateAppTab();
+            updateAdminTab();
+        }
+
+        function updateUILanguage() {
+            const t = translations[currentLanguage];
+            document.getElementById('appTitle').textContent = t.appTitle;
+            document.getElementById('appSubtitle').textContent = t.appSubtitle;
+            if (document.getElementById('appSubtitle2')) {
+                document.getElementById('appSubtitle2').textContent = currentLanguage === 'en' ? 'Leave Management System' : '請假管理系統';
+            }
+            document.getElementById('tabRequest').textContent = t.tabRequest;
+            document.getElementById('tabCalendar').textContent = t.tabCalendar;
+            document.getElementById('tabAdmin').textContent = t.tabAdmin;
+            document.getElementById('labelAlToday').textContent = t.labelAlToday;
+            document.getElementById('labelElToday').textContent = t.labelElToday;
+            document.getElementById('labelTotalToday').textContent = t.labelTotalToday;
+            document.getElementById('titleRequest').textContent = t.titleRequest;
+            document.getElementById('labelColleague').textContent = t.labelColleague;
+            document.getElementById('labelLeaveType').textContent = t.labelLeaveType;
+            document.getElementById('optionAL').textContent = t.optionAL;
+            document.getElementById('optionEL').textContent = t.optionEL;
+            document.getElementById('labelSelectMonth').textContent = t.labelSelectMonth;
+            document.getElementById('labelSelectMonth2').textContent = t.labelSelectMonth2;
+            document.getElementById('labelSelectDates').textContent = t.labelSelectDates;
+            document.getElementById('labelSelectELDates').textContent = t.labelSelectELDates;
+            document.getElementById('btnSubmit').textContent = t.btnSubmit;
+            document.getElementById('btnClear').textContent = t.btnClear;
+            document.getElementById('titleRules').textContent = t.titleRules;
+            document.getElementById('titleBuddies').textContent = t.titleBuddies;
+            document.getElementById('thColleague').textContent = t.thColleague;
+            document.getElementById('thBuddies').textContent = t.thBuddies;
+            document.getElementById('thRelease').textContent = t.thRelease;
+            document.getElementById('titleMyLeaves').textContent = t.titleMyLeaves;
+            document.getElementById('titleAddEvent').textContent = t.titleAddEvent;
+            document.getElementById('labelEventDate').textContent = t.labelEventDate;
+            document.getElementById('labelEventName').textContent = t.labelEventName;
+            document.getElementById('btnAddEvent').textContent = t.btnAddEvent;
+            document.getElementById('titleEvents').textContent = t.titleEvents;
+            document.getElementById('labelTotalRequests').textContent = t.labelTotalRequests;
+            document.getElementById('labelTotalAL').textContent = t.labelTotalAL;
+            document.getElementById('labelTotalEL').textContent = t.labelTotalEL;
+            document.getElementById('titleTeamSummary').textContent = t.titleTeamSummary;
+            document.getElementById('titleAllLeaves').textContent = t.titleAllLeaves;
+            document.getElementById('titleExport').textContent = t.titleExport;
+            document.getElementById('btnExport').textContent = t.btnExport;
+            document.getElementById('btnPrevious').textContent = t.btnPrevious;
+            document.getElementById('btnNext').textContent = t.btnNext;
+            document.getElementById('rule1').textContent = t.rule1;
+            document.getElementById('rule2').textContent = t.rule2;
+            document.getElementById('rule3').textContent = t.rule3;
+            document.getElementById('rule4').textContent = t.rule4;
+            document.getElementById('rule5').textContent = t.rule5;
+            document.getElementById('rule6').textContent = t.rule6;
+            document.getElementById('labelAlBalance').textContent = t.labelAlBalance;
+            document.getElementById('labelDays').textContent = t.labelDays;
+            document.getElementById('balanceInfo').textContent = t.balanceInfo;
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                isConnected = true;
+                updateConnectionStatus();
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                
+                if (message.type === 'init') {
+                    leaveRecords = message.data.leaveRecords || [];
+                    events = message.data.events || [];
+                    updateAppTab();
+                    renderCalendar();
+                    updateAdminTab();
+                    displayEvents();
+                    updateALBalanceDisplay();
+                } else if (message.type === 'add') {
+                    leaveRecords.push(message.record);
+                    updateAppTab();
+                    renderCalendar();
+                    updateAdminTab();
+                    updateALBalanceDisplay();
+                } else if (message.type === 'remove') {
+                    leaveRecords = leaveRecords.filter(r => r.id !== message.id);
+                    updateAppTab();
+                    renderCalendar();
+                    updateAdminTab();
+                    updateALBalanceDisplay();
+                } else if (message.type === 'addEvent') {
+                    events.push(message.event);
+                    renderCalendar();
+                    displayEvents();
+                } else if (message.type === 'removeEvent') {
+                    events = events.filter(e => e.id !== message.id);
+                    renderCalendar();
+                    displayEvents();
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                isConnected = false;
+                updateConnectionStatus();
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                isConnected = false;
+                updateConnectionStatus();
+            };
+        }
+
+        function updateConnectionStatus() {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            const t = translations[currentLanguage];
+            
+            if (isConnected) {
+                indicator.classList.add('connected');
+                text.textContent = t.connected;
+            } else {
+                indicator.classList.remove('connected');
+                text.textContent = t.disconnected;
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'calendar') {
+                renderCalendar();
+            } else if (tabName === 'admin') {
+                updateAdminTab();
+            }
+        }
+
+        function updateAlBalanceBox() {
+            const colleague = document.getElementById('colleague').value;
+            const box = document.getElementById('alBalanceBox');
+            
+            if (colleague) {
+                box.style.display = 'block';
+                if (!alBalances[colleague]) {
+                    alBalances[colleague] = 0;
+                }
+                document.getElementById('alBalance').value = alBalances[colleague];
+                updateALBalanceDisplay();
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function updateALBalanceDisplay() {
+            const colleague = document.getElementById('colleague').value;
+            const totalAL = parseInt(document.getElementById('alBalance').value) || 0;
+            
+            // Calculate applied AL days
+            const appliedAL = leaveRecords
+                .filter(r => r.colleague === colleague && r.type === 'AL')
+                .reduce((sum, r) => {
+                    if (r.halfDay === 'am' || r.halfDay === 'pm') {
+                        return sum + 0.5;
+                    } else {
+                        return sum + 1;
+                    }
+                }, 0);
+            
+            const remaining = totalAL - appliedAL;
+            const balanceInfo = document.getElementById('balanceInfo');
+            const t = translations[currentLanguage];
+            
+            balanceInfo.innerHTML = `<strong>${appliedAL}</strong> days applied | <strong>${remaining.toFixed(1)}</strong> days remaining`;
+        }
+
+        function updateDateSelectionUI() {
+            const type = document.getElementById('leaveType').value;
+            const alSection = document.getElementById('alDateSelection');
+            const elSection = document.getElementById('elDateSelection');
+            
+            if (type === 'AL') {
+                alSection.style.display = 'block';
+                elSection.style.display = 'none';
+                initializeMonthSelector('alMonth');
+            } else {
+                alSection.style.display = 'none';
+                elSection.style.display = 'block';
+                initializeMonthSelector('elMonth');
+            }
+        }
+
+        function initializeMonthSelector(inputId) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            document.getElementById(inputId).value = `${year}-${month}`;
+        }
+
+        function generateALDateSelector() {
+            const monthValue = document.getElementById('alMonth').value;
+            if (!monthValue) return;
+
+            const [year, month] = monthValue.split('-').map(Number);
+            const container = document.getElementById('alDateRangeSelector');
+            container.innerHTML = '';
+            selectedALDates = {};
+            alFromDate = null;
+            alToDate = null;
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const dates = [];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateISO = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                dates.push({ iso: dateISO, label: formatDate(dateISO) });
+            }
+            
+            let html = '<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 600;">From Date</label>';
+            html += '<select id="alFromDate" onchange="updateALFromDate()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1em;">';
+            html += '<option value="">Select start date</option>';
+            dates.forEach(d => {
+                html += `<option value="${d.iso}">${d.label}</option>`;
+            });
+            html += '</select>';
+            html += '<div id="alFromDayOptions" style="display: flex; gap: 8px; margin-top: 8px;"></div></div>';
+            
+            html += '<div><label style="display: block; margin-bottom: 8px; font-weight: 600;">To Date</label>';
+            html += '<select id="alToDate" onchange="updateALToDate()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1em;">';
+            html += '<option value="">Select end date</option>';
+            dates.forEach(d => {
+                html += `<option value="${d.iso}">${d.label}</option>`;
+            });
+            html += '</select>';
+            html += '<div id="alToDayOptions" style="display: flex; gap: 8px; margin-top: 8px;"></div></div>';
+            
+            container.innerHTML = html;
+        }
+
+        function generateELCheckboxes() {
+            const monthValue = document.getElementById('elMonth').value;
+            if (!monthValue) return;
+
+            const [year, month] = monthValue.split('-').map(Number);
+            const container = document.getElementById('elDateDropdown');
+            container.innerHTML = '';
+            selectedELDates = [];
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateISO = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const checkbox = document.createElement('label');
+                checkbox.className = 'checkbox-item';
+                checkbox.innerHTML = `
+                    <input type="checkbox" value="${dateISO}" onchange="updateELSelection()">
+                    <span>${formatDate(dateISO)}</span>
+                `;
+                container.appendChild(checkbox);
+            }
+        }
+
+        function updateALSelection() {
+            const checkboxes = document.querySelectorAll('#alDateSelector input[type="checkbox"]');
+            selectedALDates = {};
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const dateISO = cb.value;
+                    selectedALDates[dateISO] = 'full';
+                }
+            });
+        }
+
+        function setALHalfDay(dateISO, halfDay) {
+            event.preventDefault();
+            const checkbox = document.getElementById(`alDate_${dateISO}`);
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+            }
+            selectedALDates[dateISO] = halfDay;
+            
+            // Update button styles
+            document.querySelectorAll(`#halfDay_${dateISO}_full, #halfDay_${dateISO}_am, #halfDay_${dateISO}_pm`).forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`halfDay_${dateISO}_${halfDay}`).classList.add('active');
+        }
+
+        function updateELSelection() {
+            const checkboxes = document.querySelectorAll('#elCheckboxes input[type="checkbox"]');
+            selectedELDates = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+        }
+
+        function getTodayISO() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatDate(iso) {
+            const [y, m, d] = iso.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            return date.toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function dateToISO(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function isoToDate(iso) {
+            const [y, m, d] = iso.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = getTodayISO();
+            document.getElementById('eventDate').value = today;
+            
+            updateUILanguage();
+            connectWebSocket();
+        });
+
+        function resetForm() {
+            document.getElementById('leaveForm').reset();
+            selectedALDates = {};
+            selectedELDates = [];
+            const alContainer = document.getElementById('alDateRangeSelector') || document.getElementById('alDateSelector');
+            const elContainer = document.getElementById('elDateDropdown') || document.getElementById('elDateDropdown');
+            if (alContainer) alContainer.innerHTML = '';
+            if (elContainer) elContainer.innerHTML = '';
+            document.getElementById('validationResult').innerHTML = '';
+            updateDateSelectionUI();
+        }
+
+        function validateLeave(colleague, type, dates) {
+            const allRules = [];
+            
+            for (const date of dates) {
+                const rules = [];
+                const existing = leaveRecords.filter(r => r.date === date);
+
+                if (type === 'AL') {
+                    if (colleague === 'Rita') {
+                        // Rita cannot apply AL if anyone else has AL on that day
+                        const othersAL = existing.some(r => r.colleague !== 'Rita' && r.type === 'AL');
+                        rules.push({
+                            rule: `Rita cannot apply AL when others have AL (${formatDate(date)})`,
+                            passed: !othersAL
+                        });
+                    } else {
+                        // Others cannot apply AL if Rita has AL on that day
+                        const ritaAL = existing.some(r => r.colleague === 'Rita' && r.type === 'AL');
+                        rules.push({
+                            rule: `AL cannot clash with Rita's AL (${formatDate(date)})`,
+                            passed: !ritaAL
+                        });
+                    }
+                }
+
+                if (type === 'EL') {
+                    const ritaAL = existing.some(r => r.colleague === 'Rita' && r.type === 'AL');
+                    if (ritaAL) {
+                        const elCount = existing.filter(r => r.type === 'EL').length;
+                        rules.push({
+                            rule: `Only 1x EL on Rita's AL day (${formatDate(date)})`,
+                            passed: elCount < 1
+                        });
+                    }
+                }
+
+                if (type === 'AL') {
+                    const alCount = existing.filter(r => r.type === 'AL').length;
+                    rules.push({
+                        rule: `Max 2x AL per day (${formatDate(date)})`,
+                        passed: alCount < 2
+                    });
+                }
+
+                if (type === 'AL' || type === 'EL') {
+                    const buddyInfo = BUDDY_SYSTEM[colleague];
+                    if (buddyInfo) {
+                        const buddiesAvailable = !buddyInfo.buddies.some(b => existing.some(r => r.colleague === b));
+                        rules.push({
+                            rule: `Buddies must be available (${formatDate(date)})`,
+                            passed: buddiesAvailable
+                        });
+                    }
+                }
+
+                if (type === 'EL') {
+                    const elCount = existing.filter(r => r.type === 'EL').length;
+                    rules.push({
+                        rule: `Max 2x EL per day (${formatDate(date)})`,
+                        passed: elCount < 2
+                    });
+                }
+
+                const totalCount = existing.length;
+                rules.push({
+                    rule: `Max 3x AL/EL per day (${formatDate(date)})`,
+                    passed: totalCount < 3
+                });
+
+                const isDuplicate = existing.some(r => r.colleague === colleague && r.type === type && r.halfDay === selectedALDates[date]);
+                rules.push({
+                    rule: `No duplicate submission (${formatDate(date)})`,
+                    passed: !isDuplicate
+                });
+
+                allRules.push(...rules);
+            }
+
+            const allPassed = allRules.every(r => r.passed);
+            return { passed: allPassed, rules: allRules };
+        }
+
+        function validateAndSubmit() {
+            const colleague = document.getElementById('colleague').value;
+            const type = document.getElementById('leaveType').value;
+            const dates = type === 'AL' ? Object.keys(selectedALDates) : selectedELDates;
+
+            if (!colleague || !type || dates.length === 0) {
+                alert('Please fill in all fields and select dates');
+                return;
+            }
+
+            const validation = validateLeave(colleague, type, dates);
+            const resultDiv = document.getElementById('validationResult');
+            const t = translations[currentLanguage];
+
+            let html = `<div class="validation-result ${validation.passed ? 'passed' : 'failed'}">`;
+            html += `<strong>${validation.passed ? t.requestApproved : t.requestRejected}</strong><br>`;
+            html += '<div style="margin-top: 12px;">';
+            
+            validation.rules.forEach(rule => {
+                html += `<div class="rule-check ${rule.passed ? 'passed' : 'failed'}">
+                    ${rule.passed ? '✓' : '✗'} ${rule.rule}
+                </div>`;
+            });
+
+            html += '</div>';
+            if (validation.passed) {
+                html += `<button class="btn-primary" onclick="submitLeave('${colleague}', '${type}')" style="margin-top: 12px; width: 100%;">Confirm Submit</button>`;
+            }
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        function submitLeave(colleague, type) {
+            const dates = type === 'AL' ? Object.keys(selectedALDates) : selectedELDates;
+            const requests = dates.map(date => {
+                const halfDay = type === 'AL' ? selectedALDates[date] : null;
+                return fetch('/api/leave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ colleague, type, date, halfDay })
+                });
+            });
+
+            Promise.all(requests)
+                .then(() => {
+                    alert(`Leave request submitted for ${dates.length} day(s)!`);
+                    alBalances[colleague] = parseInt(document.getElementById('alBalance').value) || 0;
+                    resetForm();
+                    updateALBalanceDisplay();
+                })
+                .catch(err => {
+                    console.error('Error submitting leave:', err);
+                    alert('Error submitting leave request');
+                });
+        }
+
+        function updateAppTab() {
+            const today = getTodayISO();
+            const todayLeaves = leaveRecords.filter(r => r.date === today);
+            
+            document.getElementById('alToday').textContent = todayLeaves.filter(r => r.type === 'AL').length;
+            document.getElementById('elToday').textContent = todayLeaves.filter(r => r.type === 'EL').length;
+            document.getElementById('totalToday').textContent = todayLeaves.length;
+
+            let buddyHtml = '';
+            Object.entries(BUDDY_SYSTEM).forEach(([colleague, info]) => {
+                buddyHtml += `<tr>
+                    <td><strong>${colleague}</strong></td>
+                    <td>${info.buddies.join(', ')}</td>
+                    <td>${info.canRelease.join(', ')}</td>
+                </tr>`;
+            });
+            document.getElementById('buddyTable').innerHTML = buddyHtml;
+
+            displayMyLeaves();
+        }
+
+        function displayMyLeaves() {
+            const selectedColleague = document.getElementById('myLeavesColleague').value;
+            const t = translations[currentLanguage];
+            
+            if (!selectedColleague) {
+                document.getElementById('myLeavesAL').innerHTML = '';
+                document.getElementById('myLeavesEL').innerHTML = '';
+                return;
+            }
+            
+            const alLeaves = leaveRecords.filter(r => r.colleague === selectedColleague && r.type === 'AL').sort((a, b) => new Date(a.date) - new Date(b.date));
+            const elLeaves = leaveRecords.filter(r => r.colleague === selectedColleague && r.type === 'EL').sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Display AL
+            let alHtml = '<h4 style="color: #3b82f6; margin-bottom: 12px;">📅 Annual Leave (' + alLeaves.length + ')</h4>';
+            if (alLeaves.length === 0) {
+                alHtml += '<p style="color: var(--muted);">No annual leave requests</p>';
+            } else {
+                alLeaves.forEach(leave => {
+                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (Full Day)';
+                    alHtml += '<div class="leave-item"><div class="leave-item-info">' + formatDate(leave.date) + halfDayText + '</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave(\'' + leave.id + '\');">Edit</button><button class="btn-danger" onclick="deleteLeave(\'' + leave.id + '\');">Delete</button></div></div>';
+                });
+            }
+            document.getElementById('myLeavesAL').innerHTML = alHtml;
+            
+            // Display EL
+            let elHtml = '<h4 style="color: #f97316; margin-bottom: 12px;">⏰ Early Leave (' + elLeaves.length + ')</h4>';
+            if (elLeaves.length === 0) {
+                elHtml += '<p style="color: var(--muted);">No early leave requests</p>';
+            } else {
+                elLeaves.forEach(leave => {
+                    elHtml += '<div class="leave-item"><div class="leave-item-info">' + formatDate(leave.date) + '</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave(\'' + leave.id + '\');">Edit</button><button class="btn-danger" onclick="deleteLeave(\'' + leave.id + '\');">Delete</button></div></div>';
+                });
+            }
+            document.getElementById('myLeavesEL').innerHTML = elHtml;
+        }
+
+
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            document.getElementById('calendarTitle').textContent = 
+                currentMonth.toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { year: 'numeric', month: 'long' });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            let current = new Date(startDate);
+            for (let i = 0; i < 42; i++) {
+                const dayDiv = document.createElement('div');
+                const dateISO = dateToISO(current);
+                const dayLeaves = leaveRecords.filter(r => r.date === dateISO);
+                const dayEvents = events.filter(e => e.date === dateISO);
+                const isHoliday = hkHolidays[dateISO];
+                
+                dayDiv.className = 'calendar-day';
+                if (current.getMonth() !== month) {
+                    dayDiv.classList.add('other-month');
+                }
+                if (isHoliday) {
+                    dayDiv.classList.add('holiday');
+                }
+                if (dayEvents.length > 0) {
+                    dayDiv.classList.add('event');
+                }
+
+                let html = `<div class="calendar-day-number">${current.getDate()}</div>`;
+                html += '<div class="calendar-day-leaves">';
+                
+                if (isHoliday) {
+                    html += `<div class="holiday-badge">${isHoliday}</div>`;
+                }
+                
+                dayLeaves.forEach(leave => {
+                    const color = COLLEAGUE_COLORS[leave.colleague] || '#999';
+                    const halfDayText = leave.halfDay ? ` (${leave.halfDay.toUpperCase()})` : '';
+                    const leaveLabel = leave.type === 'AL' ? `${leave.colleague} AL` : `${leave.colleague} EL`;
+                    html += `<div class="leave-badge ${leave.type.toLowerCase()}" onclick="editLeave('${leave.id}')" title="${leaveLabel}" style="background-color: ${color}; color: white;">${leaveLabel}${halfDayText}</div>`;
+                });
+                
+                dayEvents.forEach(event => {
+                    html += `<div class="event-badge">${event.name}</div>`;
+                });
+                
+                html += '</div>';
+
+                dayDiv.innerHTML = html;
+                calendarDays.appendChild(dayDiv);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function previousMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function addEvent() {
+            const date = document.getElementById('eventDate').value;
+            const name = document.getElementById('eventName').value;
+            
+            if (!date || !name) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            const event = {
+                id: `event-${Date.now()}`,
+                date,
+                name
+            };
+            
+            fetch('/api/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(event)
+            })
+            .then(res => res.json())
+            .then(() => {
+                document.getElementById('eventName').value = '';
+            })
+            .catch(err => console.error('Error adding event:', err));
+        }
+
+        function displayEvents() {
+            const container = document.getElementById('eventsList');
+            const t = translations[currentLanguage];
+            
+            if (events.length === 0) {
+                container.innerHTML = `<p style="color: var(--muted);">${t.noEvents}</p>`;
+                return;
+            }
+            
+            const sorted = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+            let html = '';
+            
+            sorted.forEach(event => {
+                html += `<div class="leave-item">
+                    <div class="leave-item-info">
+                        <strong>${event.name}</strong> - ${formatDate(event.date)}
+                    </div>
+                    <div class="leave-item-actions">
+                        <button class="btn-danger" onclick="deleteEvent('${event.id}')">Delete</button>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function deleteEvent(id) {
+            if (confirm('Delete this event?')) {
+                fetch(`/api/event/${id}`, { method: 'DELETE' })
+                    .catch(err => console.error('Error deleting event:', err));
+            }
+        }
+
+        function editLeave(id) {
+            const leave = leaveRecords.find(r => r.id === id);
+            if (!leave) return;
+            
+            editingLeaveId = id;
+            document.getElementById('editColleague').value = leave.colleague;
+            document.getElementById('editType').value = leave.type;
+            document.getElementById('editDate').value = leave.date;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function saveEditLeave() {
+            if (!editingLeaveId) return;
+            
+            const oldLeave = leaveRecords.find(r => r.id === editingLeaveId);
+            const newDate = document.getElementById('editDate').value;
+            
+            if (!newDate) {
+                alert('Please select a date');
+                return;
+            }
+            
+            // Delete old leave and add new one
+            fetch(`/api/leave/${editingLeaveId}`, { method: 'DELETE' })
+                .then(() => {
+                    return fetch('/api/leave', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            colleague: oldLeave.colleague,
+                            type: oldLeave.type,
+                            date: newDate,
+                            halfDay: oldLeave.halfDay || null
+                        })
+                    });
+                })
+                .then(() => {
+                    closeEditModal();
+                    alert('Leave request updated successfully!');
+                })
+                .catch(err => {
+                    console.error('Error updating leave:', err);
+                    alert('Error updating leave request');
+                });
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingLeaveId = null;
+        }
+
+        function deleteLeaveFromModal() {
+            if (editingLeaveId && confirm('Delete this leave request?')) {
+                deleteLeave(editingLeaveId);
+                closeEditModal();
+            }
+        }
+
+        function deleteLeave(id) {
+            fetch(`/api/leave/${id}`, { method: 'DELETE' })
+                .catch(err => console.error('Error deleting leave:', err));
+        }
+
+        function updateAdminTab() {
+            const stats = {
+                total: leaveRecords.length,
+                al: leaveRecords.filter(r => r.type === 'AL').length,
+                el: leaveRecords.filter(r => r.type === 'EL').length
+            };
+
+            document.getElementById('totalRequests').textContent = stats.total;
+            document.getElementById('totalAL').textContent = stats.al;
+            document.getElementById('totalEL').textContent = stats.el;
+
+            let teamHtml = '';
+            COLLEAGUES.forEach(colleague => {
+                const al = leaveRecords.filter(r => r.colleague === colleague && r.type === 'AL').length;
+                const el = leaveRecords.filter(r => r.colleague === colleague && r.type === 'EL').length;
+                teamHtml += `<div class="colleague-card">
+                    <div class="colleague-avatar" style="background-color: ${COLLEAGUE_COLORS[colleague]}">${colleague.charAt(0)}</div>
+                    <div class="colleague-info">
+                        <h4>${colleague}</h4>
+                        <p>${al} AL, ${el} EL</p>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('teamSummary').innerHTML = teamHtml;
+
+            const sorted = [...leaveRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const t = translations[currentLanguage];
+            let allLeavesHtml = sorted.length === 0 ? `<p style="color: var(--muted);">${t.noLeaves}</p>` : '';
+            
+            sorted.forEach(leave => {
+                allLeavesHtml += `<div class="leave-item">
+                    <div class="leave-item-info">
+                        <strong>${leave.colleague}</strong> - ${leave.type} on ${formatDate(leave.date)}
+                        ${leave.halfDay && leave.halfDay !== 'full' ? ` (${leave.halfDay.toUpperCase()})` : ''}
+                    </div>
+                    <div class="leave-item-actions">
+                        <button class="btn-danger" onclick="deleteLeave('${leave.id}')">Delete</button>
+                    </div>
+                </div>`;
+            });
+            
+            document.getElementById('allLeavesList').innerHTML = allLeavesHtml;
+        }
+
+        function exportCSV() {
+            if (leaveRecords.length === 0) {
+                alert('No leave records to export');
+                return;
+            }
+
+            let csv = 'Date,Colleague,Type,Half Day,Created At\n';
+            leaveRecords.forEach(r => {
+                csv += `${r.date},${r.colleague},${r.type},${r.halfDay || 'N/A'},${r.createdAt}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `leave-records-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+    </script>
+</body>
+</html>

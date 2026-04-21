@@ -1,0 +1,109 @@
+{
+  "leaveRecords": [
+    {
+      "id": "Holly-EL-2026-04-20-1776760464888",
+      "colleague": "Holly",
+      "type": "EL",
+      "date": "2026-04-20",
+      "createdAt": "2026-04-21T08:34:24.888Z"
+    },
+    {
+      "id": "Varina-EL-2026-04-23-1776760546444",
+      "colleague": "Varina",
+      "type": "EL",
+      "date": "2026-04-23",
+      "createdAt": "2026-04-21T08:35:46.444Z"
+    },
+    {
+      "id": "Varina-EL-2026-04-12-1776761827202",
+      "colleague": "Varina",
+      "type": "EL",
+      "date": "2026-04-12",
+      "createdAt": "2026-04-21T08:57:07.202Z"
+    },
+    {
+      "id": "Rita-EL-2026-04-12-1776762100280",
+      "colleague": "Rita",
+      "type": "EL",
+      "date": "2026-04-12",
+      "createdAt": "2026-04-21T09:01:40.280Z"
+    },
+    {
+      "id": "Rita-AL-2026-04-16-1776762323380",
+      "colleague": "Rita",
+      "type": "AL",
+      "date": "2026-04-16",
+      "createdAt": "2026-04-21T09:05:23.380Z"
+    },
+    {
+      "id": "Holly-AL-2026-04-13-1776762356670",
+      "colleague": "Holly",
+      "type": "AL",
+      "date": "2026-04-13",
+      "createdAt": "2026-04-21T09:05:56.670Z"
+    },
+    {
+      "id": "Rita-EL-2026-04-24-1776766257016",
+      "colleague": "Rita",
+      "type": "EL",
+      "date": "2026-04-24",
+      "halfDay": null,
+      "createdAt": "2026-04-21T10:10:57.016Z"
+    },
+    {
+      "id": "Holly-EL-2026-04-15-1776767050118",
+      "colleague": "Holly",
+      "type": "EL",
+      "date": "2026-04-15",
+      "halfDay": null,
+      "createdAt": "2026-04-21T10:24:10.118Z"
+    },
+    {
+      "id": "Jenny-AL-2026-05-07-1776779753870",
+      "colleague": "Jenny",
+      "type": "AL",
+      "date": "2026-05-07",
+      "halfDay": "am",
+      "createdAt": "2026-04-21T13:55:53.870Z"
+    },
+    {
+      "id": "Rita-AL-2026-04-14-1776779905591",
+      "colleague": "Rita",
+      "type": "AL",
+      "date": "2026-04-14",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T13:58:25.591Z"
+    },
+    {
+      "id": "Jack-AL-2026-02-17-1776780350561",
+      "colleague": "Jack",
+      "type": "AL",
+      "date": "2026-02-17",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T14:05:50.561Z"
+    },
+    {
+      "id": "Jack-AL-2026-02-19-1776780350562",
+      "colleague": "Jack",
+      "type": "AL",
+      "date": "2026-02-19",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T14:05:50.562Z"
+    },
+    {
+      "id": "Jack-AL-2026-02-18-1776780350563",
+      "colleague": "Jack",
+      "type": "AL",
+      "date": "2026-02-18",
+      "halfDay": "full",
+      "createdAt": "2026-04-21T14:05:50.563Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "event-1776761784291",
+      "date": "2026-04-17",
+      "name": "Team building "
+    }
+  ]
+}
