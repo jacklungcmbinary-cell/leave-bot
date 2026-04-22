@@ -1915,9 +1915,27 @@
             const today = getTodayISO();
             const todayLeaves = leaveRecords.filter(r => r.date === today);
             
-            document.getElementById('alToday').textContent = todayLeaves.filter(r => r.type === 'AL').length;
-            document.getElementById('elToday').textContent = todayLeaves.filter(r => r.type === 'EL').length;
+            const todayAL = todayLeaves.filter(r => r.type === 'AL');
+            const todayEL = todayLeaves.filter(r => r.type === 'EL');
+            
+            // Display count
+            document.getElementById('alToday').textContent = todayAL.length;
+            document.getElementById('elToday').textContent = todayEL.length;
             document.getElementById('totalToday').textContent = todayLeaves.length;
+            
+            // Display names
+            const alNames = todayAL.map(r => r.colleague).join(', ');
+            const elNames = todayEL.map(r => r.colleague).join(', ');
+            
+            const alTodayDiv = document.querySelector('[data-label="labelAlToday"]');
+            const elTodayDiv = document.querySelector('[data-label="labelElToday"]');
+            
+            if (alTodayDiv && alNames) {
+                alTodayDiv.innerHTML = `<div style="font-size: 0.9em; color: var(--muted); margin-top: 4px;">${alNames}</div>`;
+            }
+            if (elTodayDiv && elNames) {
+                elTodayDiv.innerHTML = `<div style="font-size: 0.9em; color: var(--muted); margin-top: 4px;">${elNames}</div>`;
+            }
 
             let buddyHtml = '';
             Object.entries(BUDDY_SYSTEM).forEach(([colleague, info]) => {
