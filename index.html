@@ -1016,7 +1016,10 @@
                     <div class="weekday" id="weekSun">Sun</div>
                 </div>
 
-                <div class="calendar-days" id="calendarDays"></div>
+                <div class="calendar-days" id="calendarDays" draggable="false"></div>
+                <div id="dragHint" style="text-align: center; margin-top: 12px; font-size: 0.85em; color: var(--muted); display: none;">
+                    💡 Drag across dates to select a range for leave
+                </div>
             </div>
 
             <div class="card">
@@ -2311,6 +2314,9 @@
                 calendarDays.appendChild(dayDiv);
                 current.setDate(current.getDate() + 1);
             }
+            
+            // Initialize drag-and-drop for date range selection
+            initializeDragAndDrop();
         }
 
         function previousMonth() {
