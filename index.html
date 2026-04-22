@@ -999,6 +999,8 @@
                 <div class="calendar-header">
                     <h2 id="calendarTitle">April 2026</h2>
                     <div class="calendar-nav">
+                        <select id="yearSelector" onchange="jumpToYearMonth()" style="width: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95em; color: var(--monday-text); background-color: white;"></select>
+                        <select id="monthSelector" onchange="jumpToYearMonth()" style="width: 100px; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95em; color: var(--monday-text); background-color: white;"></select>
                         <button onclick="previousMonth()" id="btnPrevious">← Previous</button>
                         <button onclick="nextMonth()" id="btnNext">Next →</button>
                     </div>
@@ -1936,6 +1938,7 @@
             document.getElementById('eventDate').value = today;
             
             updateUILanguage();
+            initializeYearMonthSelectors();
             connectWebSocket();
         });
 
@@ -2298,11 +2301,62 @@
 
         function previousMonth() {
             currentMonth.setMonth(currentMonth.getMonth() - 1);
+            updateYearMonthSelectors();
             renderCalendar();
         }
 
         function nextMonth() {
             currentMonth.setMonth(currentMonth.getMonth() + 1);
+            updateYearMonthSelectors();
+            renderCalendar();
+        }
+
+        function initializeYearMonthSelectors() {
+            const yearSelector = document.getElementById('yearSelector');
+            const monthSelector = document.getElementById('monthSelector');
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonthNum = now.getMonth();
+            
+            // Populate year selector (from 2026 to 2030)
+            for (let year = 2026; year <= 2030; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelector.appendChild(option);
+            }
+            
+            // Populate month selector
+            const monthNames = currentLanguage === 'zh' ? 
+                ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] :
+                ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            monthNames.forEach((name, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = name;
+                monthSelector.appendChild(option);
+            });
+            
+            // Set current month and year
+            currentMonth = new Date(currentYear, currentMonthNum, 1);
+            updateYearMonthSelectors();
+            renderCalendar();
+        }
+
+        function updateYearMonthSelectors() {
+            const yearSelector = document.getElementById('yearSelector');
+            const monthSelector = document.getElementById('monthSelector');
+            yearSelector.value = currentMonth.getFullYear();
+            monthSelector.value = currentMonth.getMonth();
+        }
+
+        function jumpToYearMonth() {
+            const yearSelector = document.getElementById('yearSelector');
+            const monthSelector = document.getElementById('monthSelector');
+            const year = parseInt(yearSelector.value);
+            const month = parseInt(monthSelector.value);
+            currentMonth = new Date(year, month, 1);
             renderCalendar();
         }
 
