@@ -904,7 +904,7 @@
                         <div class="form-group">
                             <label for="colleague" id="labelColleague">Who are you?</label>
                             <select id="colleague" required onchange="updateAlBalanceBox()">
-                                <option value="">Select your name</option>
+                                <option value="" id="optionDefaultColleague">Select your name</option>
                                 <option value="Varina">Varina</option>
                                 <option value="Jenny">Jenny</option>
                                 <option value="Aaron">Aaron</option>
@@ -979,7 +979,7 @@
                 <div class="form-group">
                     <label id="labelMyLeavesColleague">Select Colleague</label>
                     <select id="myLeavesColleague" onchange="displayMyLeaves()">
-                        <option value="">-- Select --</option>
+                        <option value="" id="optionDefaultMyLeaves">-- Select --</option>
                         <option value="Varina">Varina</option>
                         <option value="Jenny">Jenny</option>
                         <option value="Aaron">Aaron</option>
@@ -1316,7 +1316,22 @@
                 am: '上午',
                 pm: '下午',
                 edit: '編輯',
-                delete: '刪除'
+                delete: '刪除',
+                btnSave: '儲存',
+                placeholderSelectName: '選擇你的名字',
+                labelQuickAdd: '快速新增',
+                labelEditLeave: '編輯請假',
+                labelEditEvent: '編輯事件',
+                labelSelectColleague: '選擇同事',
+                optionSelect: '-- 選擇 --',
+                weekMon: '一',
+                weekTue: '二',
+                weekWed: '三',
+                weekThu: '四',
+                weekFri: '五',
+                weekSat: '六',
+                weekSun: '日',
+                editLabelHalfDay: '半天 (僅限 AL)'
             }
         };
 
@@ -1363,7 +1378,7 @@
         let currentMonth = new Date();
         let selectedALDates = {};
         let selectedELDates = [];
-        let currentLanguage = 'zh';
+        let currentLanguage = 'zh'; // Default to Chinese
         let editingLeaveId = null;
         let alBalances = {};
 
@@ -1425,12 +1440,35 @@
                 ['rule6', t.rule6],
                 ['labelAlBalance', t.labelAlBalance],
                 ['labelDays', t.labelDays],
-                ['balanceInfo', t.balanceInfo]
+                ['balanceInfo', t.balanceInfo],
+                ['btnSaveEdit', t.btnSave],
+                ['btnSaveEventEdit', t.btnSave],
+                ['btnDeleteEventInModal', t.btnDeleteInModal],
+                ['btnCloseEventModal', t.btnClose],
+                ['btnCloseEditModal', t.btnClose],
+                ['labelMyLeavesColleague', t.labelSelectColleague],
+                ['weekMon', t.weekMon],
+                ['weekTue', t.weekTue],
+                ['weekWed', t.weekWed],
+                ['weekThu', t.weekThu],
+                ['weekFri', t.weekFri],
+                ['weekSat', t.weekSat],
+                ['weekSun', t.weekSun],
+                ['editLabelHalfDay', t.editLabelHalfDay],
+                ['editFullDayBtn', t.fullDay],
+                ['editAMBtn', t.am],
+                ['editPMBtn', t.pm]
             ];
 
             ids.forEach(([id, text]) => {
                 const el = document.getElementById(id);
-                if (el) el.textContent = text;
+                if (el) {
+                    if (el.tagName === 'OPTION' && (id === 'optionDefaultColleague' || id === 'optionDefaultMyLeaves')) {
+                        el.textContent = t.optionSelect;
+                    } else {
+                        el.textContent = text;
+                    }
+                }
             });
 
             if (document.getElementById('appSubtitle2')) {
@@ -1563,7 +1601,9 @@
             const balanceInfo = document.getElementById('balanceInfo');
             const t = translations[currentLanguage];
             
-            balanceInfo.innerHTML = `<strong>${appliedAL}</strong> days applied | <strong>${remaining.toFixed(1)}</strong> days remaining`;
+            const appliedText = currentLanguage === 'zh' ? '已申請' : 'days applied';
+            const remainingText = currentLanguage === 'zh' ? '剩餘' : 'days remaining';
+            balanceInfo.innerHTML = `<strong>${appliedAL}</strong> ${appliedText} | <strong>${remaining.toFixed(1)}</strong> ${remainingText}`;
         }
 
         function updateDateSelectionUI() {
@@ -1602,10 +1642,11 @@
                 return;
             }
             
+            const t = translations[currentLanguage];
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
-                const labels = { full: 'Full Day', am: 'AM', pm: 'PM' };
-                html += `<button type="button" class="half-day-btn" onclick="setALFromHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${labels[opt]}</button>`;
+                const label = t[opt] || opt.toUpperCase();
+                html += `<button type="button" class="half-day-btn" onclick="setALFromHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
             document.getElementById('alFromDayOptions').innerHTML = html;
             alFromHalfDay = 'full';
@@ -1619,10 +1660,11 @@
                 return;
             }
             
+            const t = translations[currentLanguage];
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
-                const labels = { full: 'Full Day', am: 'AM', pm: 'PM' };
-                html += `<button type="button" class="half-day-btn" onclick="setALToHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${labels[opt]}</button>`;
+                const label = t[opt] || opt.toUpperCase();
+                html += `<button type="button" class="half-day-btn" onclick="setALToHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
             document.getElementById('alToDayOptions').innerHTML = html;
             alToHalfDay = 'full';
@@ -1663,7 +1705,7 @@
             selectedALDates = {};
             
             if (from > to) {
-                alert('From date must be before or equal to To date');
+                alert(currentLanguage === 'zh' ? '開始日期必須早於或等於結束日期' : 'From date must be before or equal to To date');
                 return;
             }
             
@@ -1707,18 +1749,18 @@
                 dates.push({ iso: dateISO, label: formatDate(dateISO) });
             }
             
-            let html = '<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 600;">From Date</label>';
+            const t = translations[currentLanguage];
+            let html = `<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 600;">${currentLanguage === 'zh' ? '開始日期' : 'From Date'}</label>`;
             html += '<select id="alFromDate" onchange="updateALFromDate()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1em;">';
-            html += '<option value="">Select start date</option>';
+            html += `<option value="">${currentLanguage === 'zh' ? '選擇開始日期' : 'Select start date'}</option>`;
             dates.forEach(d => {
                 html += `<option value="${d.iso}">${d.label}</option>`;
             });
             html += '</select>';
             html += '<div id="alFromDayOptions" style="display: flex; gap: 8px; margin-top: 8px;"></div></div>';
-            
-            html += '<div><label style="display: block; margin-bottom: 8px; font-weight: 600;">To Date</label>';
+            html += `<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 600;">${currentLanguage === 'zh' ? '結束日期' : 'To Date'}</label>`;
             html += '<select id="alToDate" onchange="updateALToDate()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1em;">';
-            html += '<option value="">Select end date</option>';
+            html += `<option value="">${currentLanguage === 'zh' ? '選擇結束日期' : 'Select end date'}</option>`;
             dates.forEach(d => {
                 html += `<option value="${d.iso}">${d.label}</option>`;
             });
@@ -1939,7 +1981,7 @@
             const dates = type === 'AL' ? Object.keys(selectedALDates) : selectedELDates;
 
             if (!colleague || !type || dates.length === 0) {
-                alert('Please fill in all fields and select dates');
+                alert(currentLanguage === 'zh' ? '請填寫所有欄位並選擇日期' : 'Please fill in all fields and select dates');
                 return;
             }
 
@@ -1952,7 +1994,8 @@
                     }
                 }
                 if (blockedDates.length > 0) {
-                    alert('Cannot submit EL on these dates - you already have AL:\n' + blockedDates.join('\n'));
+                    const msg = currentLanguage === 'zh' ? '無法在這些日期提交早退 - 您已經申請了年假：\n' : 'Cannot submit EL on these dates - you already have AL:\n';
+                    alert(msg + blockedDates.join('\n'));
                     return;
                 }
             }
@@ -1973,7 +2016,8 @@
 
             html += '</div>';
             if (validation.passed) {
-                html += `<button class="btn-primary" onclick="submitLeave('${colleague}', '${type}')" style="margin-top: 12px; width: 100%;">Confirm Submit</button>`;
+                const btnText = currentLanguage === 'zh' ? '確認提交' : 'Confirm Submit';
+                html += `<button class="btn-primary" onclick="submitLeave('${colleague}', '${type}')" style="margin-top: 12px; width: 100%;">${btnText}</button>`;
             }
             html += '</div>';
 
@@ -1993,14 +2037,16 @@
 
             Promise.all(requests)
                 .then(() => {
-                    alert(`Leave request submitted for ${dates.length} day(s)!`);
+                    const msg = currentLanguage === 'zh' ? `已提交 ${dates.length} 天的請假申請！` : `Leave request submitted for ${dates.length} day(s)!`;
+                    alert(msg);
                     alBalances[colleague] = parseInt(document.getElementById('alBalance').value) || 0;
                     resetForm();
                     updateALBalanceDisplay();
                 })
                 .catch(err => {
                     console.error('Error submitting leave:', err);
-                    alert('Error submitting leave request');
+                    const errMsg = currentLanguage === 'zh' ? '提交請假申請時出錯' : 'Error submitting leave request';
+                    alert(errMsg);
                 });
         }
 
@@ -2231,7 +2277,7 @@
         
         function saveEditEvent() {
             if (!editingEventId) {
-                alert('No event selected');
+                alert(currentLanguage === 'zh' ? '未選擇事件' : 'No event selected');
                 return;
             }
             
@@ -2239,7 +2285,7 @@
             const name = document.getElementById('editEventName').value;
             
             if (!date || !name) {
-                alert('Please fill in all fields');
+                alert(currentLanguage === 'zh' ? '請填寫所有欄位' : 'Please fill in all fields');
                 return;
             }
             
@@ -2254,15 +2300,18 @@
             })
             .then(() => {
                 closeEditEventModal();
+                alert(currentLanguage === 'zh' ? '事件已成功更新！' : 'Event updated successfully!');
             })
             .catch(err => {
                 console.error('Error updating event:', err);
-                alert('Error updating event: ' + err.message);
+                const msg = currentLanguage === 'zh' ? '更新事件時出錯：' : 'Error updating event: ';
+                alert(msg + err.message);
             });
         }
         
         function deleteEventFromModal() {
-            if (editingEventId && confirm('Delete this event?')) {
+            const msg = currentLanguage === 'zh' ? '確定要刪除此事件嗎？' : 'Delete this event?';
+            if (editingEventId && confirm(msg)) {
                 const idToDelete = editingEventId;
                 closeEditEventModal();
                 fetch(`/api/event/${idToDelete}`, { method: 'DELETE' })
@@ -2275,7 +2324,8 @@
                     })
                     .catch(err => {
                         console.error('Error deleting event:', err);
-                        alert('Error deleting event: ' + err.message);
+                        const msg = currentLanguage === 'zh' ? '刪除事件時出錯：' : 'Error deleting event: ';
+                        alert(msg + err.message);
                     });
             }
         }
@@ -2487,7 +2537,8 @@
         }
 
         function deleteLeaveFromModal() {
-            if (editingLeaveId && confirm('Delete this leave request?')) {
+            const msg = currentLanguage === 'zh' ? '確定要刪除此請假申請嗎？' : 'Delete this leave request?';
+            if (editingLeaveId && confirm(msg)) {
                 deleteLeave(editingLeaveId);
                 closeEditModal();
             }
@@ -2552,7 +2603,7 @@
 
         function saveQuickAdd() {
             if (!quickAddDate || !quickAddCurrentType) {
-                alert('Please select a type');
+                alert(currentLanguage === 'zh' ? '請選擇類型' : 'Please select a type');
                 return;
             }
 
@@ -2574,7 +2625,7 @@
             if (quickAddCurrentType === 'EVENT') {
                 const eventName = document.getElementById('quickAddEventName').value;
                 if (!eventName) {
-                    alert('Please enter event name');
+                    alert(currentLanguage === 'zh' ? '請輸入事件名稱' : 'Please enter event name');
                     return;
                 }
                 
@@ -2601,7 +2652,7 @@
         function proceedWithQuickAdd() {
             const colleague = document.getElementById('quickAddColleague').value;
             if (!colleague) {
-                alert('Please select colleague');
+                alert(currentLanguage === 'zh' ? '請選擇同事' : 'Please select colleague');
                 return;
             }
             
