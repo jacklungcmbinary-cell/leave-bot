@@ -1403,39 +1403,27 @@
                 if (message.type === 'init') {
                     leaveRecords = message.data.leaveRecords || [];
                     events = message.data.events || [];
-                    updateAppTab();
-                    renderCalendar();
-                    updateAdminTab();
-                    displayEvents();
-                    updateALBalanceDisplay();
                 } else if (message.type === 'add') {
                     leaveRecords.push(message.record);
-                    updateAppTab();
-                    renderCalendar();
-                    updateAdminTab();
-                    updateALBalanceDisplay();
                 } else if (message.type === 'remove') {
                     leaveRecords = leaveRecords.filter(r => r.id !== message.id);
-                    updateAppTab();
-                    renderCalendar();
-                    updateAdminTab();
-                    updateALBalanceDisplay();
                 } else if (message.type === 'addEvent') {
                     events.push(message.event);
-                    renderCalendar();
-                    displayEvents();
                 } else if (message.type === 'updateEvent') {
                     const index = events.findIndex(e => e.id === message.event.id);
                     if (index !== -1) {
                         events[index] = message.event;
                     }
-                    renderCalendar();
-                    displayEvents();
                 } else if (message.type === 'removeEvent') {
                     events = events.filter(e => e.id !== message.id);
-                    renderCalendar();
-                    displayEvents();
                 }
+                
+                // Always update all UI components on any data change to ensure sync
+                updateAppTab();
+                renderCalendar();
+                updateAdminTab();
+                displayEvents();
+                updateALBalanceDisplay();
             };
 
             ws.onclose = () => {
@@ -2276,10 +2264,23 @@
         }
         
         function fetchData() {
-            renderCalendar();
-            displayEvents();
-            updateAppTab();
-            updateAdminTab();
+            // Use fetch to get latest data
+            Promise.all([
+                fetch('/api/data').then(res => res.json()),
+                fetch('/api/event').then(res => res.json())
+            ])
+            .then(([appData, eventData]) => {
+                leaveRecords = appData.leaveRecords || [];
+                events = eventData || [];
+                
+                // Update all UI components
+                updateAppTab();
+                renderCalendar();
+                updateAdminTab();
+                displayEvents();
+                updateALBalanceDisplay();
+            })
+            .catch(err => console.error('Error fetching data:', err));
         }
 
         let editingHalfDay = null;
