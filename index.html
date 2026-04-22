@@ -220,6 +220,15 @@
         .summary-label {
             font-size: 0.9em;
             color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .summary-names {
+            font-size: 0.85em;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 8px;
+            min-height: 1.2em;
         }
 
         .form-group {
@@ -808,16 +817,19 @@
         <div id="app" class="tab-content active">
             <div class="summary-grid">
                 <div class="summary-item">
-                    <div class="summary-number" id="alToday">0</div>
-                    <div class="summary-label" id="labelAlToday">AL Today</div>
+                    <div class="summary-number" id="summaryAL">0</div>
+                    <div class="summary-label" id="labelSummaryAL">Today's AL</div>
+                    <div class="summary-names" id="summaryALNames"></div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-number" id="elToday">0</div>
-                    <div class="summary-label" id="labelElToday">EL Today</div>
+                    <div class="summary-number" id="summaryEL">0</div>
+                    <div class="summary-label" id="labelSummaryEL">Today's EL</div>
+                    <div class="summary-names" id="summaryELNames"></div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-number" id="totalToday">0</div>
-                    <div class="summary-label" id="labelTotalToday">Total</div>
+                    <div class="summary-number" id="summaryTotal">0</div>
+                    <div class="summary-label" id="labelSummaryTotal">Total</div>
+                    <div class="summary-names" id="summaryTotalNames"></div>
                 </div>
             </div>
 
@@ -1943,23 +1955,26 @@
             const todayEL = todayLeaves.filter(r => r.type === 'EL');
             
             // Display count
-            document.getElementById('alToday').textContent = todayAL.length;
-            document.getElementById('elToday').textContent = todayEL.length;
-            document.getElementById('totalToday').textContent = todayLeaves.length;
+            const alTodayCount = document.getElementById('summaryAL') || document.getElementById('alToday');
+            const elTodayCount = document.getElementById('summaryEL') || document.getElementById('elToday');
+            const totalTodayCount = document.getElementById('summaryTotal') || document.getElementById('totalToday');
+            
+            if (alTodayCount) alTodayCount.textContent = todayAL.length;
+            if (elTodayCount) elTodayCount.textContent = todayEL.length;
+            if (totalTodayCount) totalTodayCount.textContent = todayLeaves.length;
             
             // Display names
             const alNames = todayAL.map(r => r.colleague).join(', ');
             const elNames = todayEL.map(r => r.colleague).join(', ');
+            const totalNames = todayLeaves.map(r => r.colleague).join(', ');
             
-            const alTodayDiv = document.querySelector('[data-label="labelAlToday"]');
-            const elTodayDiv = document.querySelector('[data-label="labelElToday"]');
+            const alNamesDiv = document.getElementById('summaryALNames');
+            const elNamesDiv = document.getElementById('summaryELNames');
+            const totalNamesDiv = document.getElementById('summaryTotalNames');
             
-            if (alTodayDiv && alNames) {
-                alTodayDiv.innerHTML = `<div style="font-size: 0.9em; color: var(--muted); margin-top: 4px;">${alNames}</div>`;
-            }
-            if (elTodayDiv && elNames) {
-                elTodayDiv.innerHTML = `<div style="font-size: 0.9em; color: var(--muted); margin-top: 4px;">${elNames}</div>`;
-            }
+            if (alNamesDiv) alNamesDiv.textContent = alNames;
+            if (elNamesDiv) elNamesDiv.textContent = elNames;
+            if (totalNamesDiv) totalNamesDiv.textContent = totalNames;
 
             let buddyHtml = '';
             Object.entries(BUDDY_SYSTEM).forEach(([colleague, info]) => {
