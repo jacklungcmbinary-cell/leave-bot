@@ -1324,57 +1324,65 @@
 
         function updateUILanguage() {
             const t = translations[currentLanguage];
-            document.getElementById('appTitle').textContent = t.appTitle;
-            document.getElementById('appSubtitle').textContent = t.appSubtitle;
+            const ids = [
+                ['appTitle', t.appTitle],
+                ['appSubtitle', t.appSubtitle],
+                ['tabRequest', t.tabRequest],
+                ['tabCalendar', t.tabCalendar],
+                ['tabAdmin', t.tabAdmin],
+                ['labelSummaryAL', t.labelAlToday],
+                ['labelSummaryEL', t.labelElToday],
+                ['labelSummaryTotal', t.labelTotalToday],
+                ['titleRequest', t.titleRequest],
+                ['labelColleague', t.labelColleague],
+                ['labelLeaveType', t.labelLeaveType],
+                ['optionAL', t.optionAL],
+                ['optionEL', t.optionEL],
+                ['labelSelectMonth', t.labelSelectMonth],
+                ['labelSelectMonth2', t.labelSelectMonth2],
+                ['labelSelectDates', t.labelSelectDates],
+                ['labelSelectELDates', t.labelSelectELDates],
+                ['btnSubmit', t.btnSubmit],
+                ['btnClear', t.btnClear],
+                ['titleRules', t.titleRules],
+                ['titleBuddies', t.titleBuddies],
+                ['thColleague', t.thColleague],
+                ['thBuddies', t.thBuddies],
+                ['thRelease', t.thRelease],
+                ['titleMyLeaves', t.titleMyLeaves],
+                ['titleAddEvent', t.titleAddEvent],
+                ['labelEventDate', t.labelEventDate],
+                ['labelEventName', t.labelEventName],
+                ['btnAddEvent', t.btnAddEvent],
+                ['titleEvents', t.titleEvents],
+                ['labelTotalRequests', t.labelTotalRequests],
+                ['labelTotalAL', t.labelTotalAL],
+                ['labelTotalEL', t.labelTotalEL],
+                ['titleTeamSummary', t.titleTeamSummary],
+                ['titleAllLeaves', t.titleAllLeaves],
+                ['titleExport', t.titleExport],
+                ['btnExport', t.btnExport],
+                ['btnPrevious', t.btnPrevious],
+                ['btnNext', t.btnNext],
+                ['rule1', t.rule1],
+                ['rule2', t.rule2],
+                ['rule3', t.rule3],
+                ['rule4', t.rule4],
+                ['rule5', t.rule5],
+                ['rule6', t.rule6],
+                ['labelAlBalance', t.labelAlBalance],
+                ['labelDays', t.labelDays],
+                ['balanceInfo', t.balanceInfo]
+            ];
+
+            ids.forEach(([id, text]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            });
+
             if (document.getElementById('appSubtitle2')) {
                 document.getElementById('appSubtitle2').textContent = currentLanguage === 'en' ? 'Leave Management System' : '請假管理系統';
             }
-            document.getElementById('tabRequest').textContent = t.tabRequest;
-            document.getElementById('tabCalendar').textContent = t.tabCalendar;
-            document.getElementById('tabAdmin').textContent = t.tabAdmin;
-            document.getElementById('labelAlToday').textContent = t.labelAlToday;
-            document.getElementById('labelElToday').textContent = t.labelElToday;
-            document.getElementById('labelTotalToday').textContent = t.labelTotalToday;
-            document.getElementById('titleRequest').textContent = t.titleRequest;
-            document.getElementById('labelColleague').textContent = t.labelColleague;
-            document.getElementById('labelLeaveType').textContent = t.labelLeaveType;
-            document.getElementById('optionAL').textContent = t.optionAL;
-            document.getElementById('optionEL').textContent = t.optionEL;
-            document.getElementById('labelSelectMonth').textContent = t.labelSelectMonth;
-            document.getElementById('labelSelectMonth2').textContent = t.labelSelectMonth2;
-            document.getElementById('labelSelectDates').textContent = t.labelSelectDates;
-            document.getElementById('labelSelectELDates').textContent = t.labelSelectELDates;
-            document.getElementById('btnSubmit').textContent = t.btnSubmit;
-            document.getElementById('btnClear').textContent = t.btnClear;
-            document.getElementById('titleRules').textContent = t.titleRules;
-            document.getElementById('titleBuddies').textContent = t.titleBuddies;
-            document.getElementById('thColleague').textContent = t.thColleague;
-            document.getElementById('thBuddies').textContent = t.thBuddies;
-            document.getElementById('thRelease').textContent = t.thRelease;
-            document.getElementById('titleMyLeaves').textContent = t.titleMyLeaves;
-            document.getElementById('titleAddEvent').textContent = t.titleAddEvent;
-            document.getElementById('labelEventDate').textContent = t.labelEventDate;
-            document.getElementById('labelEventName').textContent = t.labelEventName;
-            document.getElementById('btnAddEvent').textContent = t.btnAddEvent;
-            document.getElementById('titleEvents').textContent = t.titleEvents;
-            document.getElementById('labelTotalRequests').textContent = t.labelTotalRequests;
-            document.getElementById('labelTotalAL').textContent = t.labelTotalAL;
-            document.getElementById('labelTotalEL').textContent = t.labelTotalEL;
-            document.getElementById('titleTeamSummary').textContent = t.titleTeamSummary;
-            document.getElementById('titleAllLeaves').textContent = t.titleAllLeaves;
-            document.getElementById('titleExport').textContent = t.titleExport;
-            document.getElementById('btnExport').textContent = t.btnExport;
-            document.getElementById('btnPrevious').textContent = t.btnPrevious;
-            document.getElementById('btnNext').textContent = t.btnNext;
-            document.getElementById('rule1').textContent = t.rule1;
-            document.getElementById('rule2').textContent = t.rule2;
-            document.getElementById('rule3').textContent = t.rule3;
-            document.getElementById('rule4').textContent = t.rule4;
-            document.getElementById('rule5').textContent = t.rule5;
-            document.getElementById('rule6').textContent = t.rule6;
-            document.getElementById('labelAlBalance').textContent = t.labelAlBalance;
-            document.getElementById('labelDays').textContent = t.labelDays;
-            document.getElementById('balanceInfo').textContent = t.balanceInfo;
         }
 
         function connectWebSocket() {
