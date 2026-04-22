@@ -10,20 +10,6 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 console.log('Using HTTP - proxy will handle HTTPS');
 
-// Performance: Enable compression
-const compression = require('compression');
-app.use(compression());
-
-// Performance: Set cache headers for static files
-app.use((req, res, next) => {
-  if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-    res.set('Cache-Control', 'public, max-age=31536000'); // 1 year
-  } else {
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  }
-  next();
-});
-
 // Data storage
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -48,13 +34,9 @@ function saveData(data) {
 
 let data = loadData();
 
-// Serve static files with compression
-app.use(express.static(path.join(__dirname), {
-  maxAge: '1d',
-  etag: false
-}));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+// Serve static files
+app.use(express.static(path.join(__dirname)));
+app.use(express.json());
 
 // Root route
 app.get('/', (req, res) => {
