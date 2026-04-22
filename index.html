@@ -1043,6 +1043,29 @@
         </div>
     </div>
 
+    <!-- Event Edit Modal -->
+    <div class="modal" id="editEventModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditEventModal()">×</button>
+            <div class="modal-header" id="editEventModalTitle">Edit Event</div>
+            <form id="editEventForm">
+                <div class="form-group">
+                    <label id="editEventLabelDate">Date</label>
+                    <input type="date" id="editEventDate">
+                </div>
+                <div class="form-group">
+                    <label id="editEventLabelName">Event Name</label>
+                    <input type="text" id="editEventName" placeholder="e.g., Team Meeting, Project Deadline">
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-primary" onclick="saveEditEvent()">Save</button>
+                    <button type="button" class="btn-danger" onclick="deleteEventFromModal()">Delete</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditEventModal()">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Quick Add Modal -->
     <div class="modal" id="quickAddModal">
         <div class="modal-content">
@@ -1135,6 +1158,7 @@
                 editLabelDate: 'Date',
                 btnDeleteInModal: 'Delete',
                 btnClose: 'Close',
+                editEventModalTitle: 'Edit Event',
                 btnPrevious: '← Previous',
                 btnNext: 'Next →',
                 requestApproved: '✅ Request Approved!',
@@ -1204,6 +1228,7 @@
                 editLabelDate: '日期',
                 btnDeleteInModal: '刪除',
                 btnClose: '關閉',
+                editEventModalTitle: '編輯事件',
                 btnPrevious: '← 上一月',
                 btnNext: '下一月 →',
                 requestApproved: '✅ 申請已批准！',
@@ -2086,52 +2111,28 @@
                 return;
             }
             
-            // If editing an existing event, use PUT
-            if (editingEventId) {
-                fetch(`/api/event/${editingEventId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, name })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Update failed: ' + res.status);
-                    return res.json();
-                })
-                .then(() => {
-                    clearEventForm();
-                    alert('Event updated successfully!');
-                })
-                .catch(err => {
-                    console.error('Error updating event:', err);
-                    alert('Error updating event: ' + err.message);
-                });
-            } else {
-                // Create new event
-                fetch('/api/event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, name })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Create failed: ' + res.status);
-                    return res.json();
-                })
-                .then(() => {
-                    clearEventForm();
-                    alert('Event added successfully!');
-                })
-                .catch(err => {
-                    console.error('Error adding event:', err);
-                    alert('Error adding event: ' + err.message);
-                });
-            }
+            // Only for creating new events
+            fetch('/api/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, name })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Create failed: ' + res.status);
+                return res.json();
+            })
+            .then(() => {
+                clearEventForm();
+            })
+            .catch(err => {
+                console.error('Error adding event:', err);
+                alert('Error adding event: ' + err.message);
+            });
         }
         
         function clearEventForm() {
             document.getElementById('eventDate').value = getTodayISO();
             document.getElementById('eventName').value = '';
-            editingEventId = null;
-            document.getElementById('btnAddEvent').textContent = translations[currentLanguage].btnAddEvent || 'Add Event';
             fetchData();
         }
         
@@ -2140,22 +2141,72 @@
             if (!event) return;
             
             editingEventId = id;
-            document.getElementById('eventDate').value = event.date;
-            document.getElementById('eventName').value = event.name;
+            document.getElementById('editEventDate').value = event.date;
+            document.getElementById('editEventName').value = event.name;
             
-            // Update button text to indicate editing
-            document.getElementById('btnAddEvent').textContent = translations[currentLanguage].btnUpdateEvent || 'Update Event';
+            // Update modal labels based on current language
+            const t = translations[currentLanguage];
+            document.getElementById('editEventModalTitle').textContent = t.editEventModalTitle || 'Edit Event';
+            document.getElementById('editEventLabelDate').textContent = t.labelEventDate || 'Date';
+            document.getElementById('editEventLabelName').textContent = t.labelEventName || 'Event Name';
             
-            // Scroll to form and highlight
-            const formContainer = document.getElementById('eventDate').closest('.card');
-            if (formContainer) {
-                formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                formContainer.style.boxShadow = '0 0 10px rgba(30, 64, 175, 0.3)';
-                setTimeout(() => {
-                    formContainer.style.boxShadow = '';
-                }, 2000);
+            document.getElementById('editEventModal').classList.add('active');
+        }
+        
+        function closeEditEventModal() {
+            document.getElementById('editEventModal').classList.remove('active');
+            editingEventId = null;
+        }
+        
+        function saveEditEvent() {
+            if (!editingEventId) {
+                alert('No event selected');
+                return;
             }
-            document.getElementById('eventDate').focus();
+            
+            const date = document.getElementById('editEventDate').value;
+            const name = document.getElementById('editEventName').value;
+            
+            if (!date || !name) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            fetch(`/api/event/${editingEventId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, name })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Update failed: ' + res.status);
+                return res.json();
+            })
+            .then(() => {
+                closeEditEventModal();
+            })
+            .catch(err => {
+                console.error('Error updating event:', err);
+                alert('Error updating event: ' + err.message);
+            });
+        }
+        
+        function deleteEventFromModal() {
+            if (editingEventId && confirm('Delete this event?')) {
+                const idToDelete = editingEventId;
+                closeEditEventModal();
+                fetch(`/api/event/${idToDelete}`, { method: 'DELETE' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Delete failed: ' + res.status);
+                        return res.json();
+                    })
+                    .then(() => {
+                        fetchData();
+                    })
+                    .catch(err => {
+                        console.error('Error deleting event:', err);
+                        alert('Error deleting event: ' + err.message);
+                    });
+            }
         }
         
         function displayEvents() {
@@ -2193,9 +2244,6 @@
                         return res.json();
                     })
                     .then(() => {
-                        if (editingEventId === id) {
-                            clearEventForm();
-                        }
                         fetchData();
                     })
                     .catch(err => {
