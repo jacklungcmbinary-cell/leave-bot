@@ -17,141 +17,132 @@
         }
 
         :root {
-            --primary: #1e40af;
-            --primary-light: #3b82f6;
-            --primary-dark: #1e3a8a;
-            --accent: #f59e0b;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --success: #22c55e;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --foreground: #0f172a;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --gradient-start: #1e40af;
-            --gradient-end: #3b82f6;
+            /* Monday.com Color Palette */
+            --monday-blue: #0073ea;
+            --monday-dark-blue: #0052cc;
+            --monday-sidebar: #292f4c;
+            --monday-background: #f5f6f8;
+            --monday-surface: #ffffff;
+            --monday-text: #323338;
+            --monday-text-muted: #676879;
+            --monday-border: #d0d4e4;
+            --monday-green: #00c875;
+            --monday-orange: #fdab3d;
+            --monday-red: #e44258;
+            --monday-purple: #a25ddc;
+            
+            --primary: var(--monday-blue);
+            --success: var(--monday-green);
+            --warning: var(--monday-orange);
+            --error: var(--monday-red);
+            --background: var(--monday-background);
+            --surface: var(--monday-surface);
+            --foreground: var(--monday-text);
+            --muted: var(--monday-text-muted);
+            --border: var(--monday-border);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: var(--background);
             color: var(--foreground);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-            color: white;
-            padding: 50px 40px;
-            text-align: center;
-            border-radius: 16px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.15);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        header > div:first-child {
+        /* Sidebar Layout */
+        .sidebar {
+            width: 240px;
+            background-color: var(--monday-sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-nav {
             flex: 1;
         }
 
-        header h1 {
-            font-size: 2.8em;
-            margin-bottom: 8px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        header p {
-            font-size: 1.1em;
-            opacity: 0.95;
-            font-weight: 500;
-        }
-
-        header .subtitle {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-top: 8px;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .language-selector {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .language-selector:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9em;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #ef4444;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.connected {
-            background-color: #22c55e;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--border);
-        }
-
         .tab-button {
-            padding: 14px 24px;
+            width: 100%;
+            padding: 12px 24px;
             background: none;
             border: none;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: left;
+            font-size: 0.95em;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            color: var(--muted);
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
         }
 
         .tab-button:hover {
-            color: var(--foreground);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .tab-button.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left: 4px solid var(--monday-blue);
+            padding-left: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 64px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .page-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .tab-content {
@@ -160,74 +151,86 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 24px;
+            margin-bottom: 32px;
         }
 
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.2s ease;
         }
 
         .card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary-light);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .card h3 {
-            margin-bottom: 12px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            font-weight: 700;
             color: var(--foreground);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
         }
 
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 30px;
+            gap: 24px;
+            margin-bottom: 32px;
         }
 
         .summary-item {
-            background: linear-gradient(135deg, var(--surface) 0%, rgba(59, 130, 246, 0.02) 100%);
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s ease;
+            border-left: 6px solid var(--monday-blue);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .summary-item:hover {
-            border-color: var(--primary-light);
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
-            transform: translateY(-2px);
-        }
+        .summary-item:nth-child(2) { border-left-color: var(--monday-orange); }
+        .summary-item:nth-child(3) { border-left-color: var(--monday-purple); }
 
         .summary-number {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
+            font-size: 2em;
+            font-weight: 800;
+            color: var(--foreground);
+            margin-bottom: 4px;
         }
 
         .summary-label {
-            font-size: 0.9em;
+            font-size: 0.85em;
+            font-weight: 600;
             color: var(--muted);
-            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .summary-names {
             font-size: 0.85em;
-            color: var(--primary);
-            font-weight: 600;
+            color: var(--monday-text);
             margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
             min-height: 1.2em;
         }
 
@@ -399,201 +402,227 @@
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25);
+            background: var(--monday-dark-blue);
         }
 
         .btn-secondary {
             background-color: var(--surface);
             color: var(--foreground);
             border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            font-size: 0.95em;
         }
 
         .btn-secondary:hover {
-            background-color: var(--border);
+            background-color: var(--monday-background);
+            border-color: var(--monday-text-muted);
         }
 
         .btn-danger {
-            background-color: var(--error);
+            background-color: var(--monday-red);
             color: white;
-            padding: 4px 8px;
-            font-size: 0.85em;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            border: none;
         }
 
         .btn-danger:hover {
-            background-color: #dc2626;
+            opacity: 0.9;
         }
 
         .btn-edit {
-            background-color: var(--accent);
+            background-color: var(--monday-blue);
             color: white;
-            padding: 4px 8px;
-            font-size: 0.85em;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            border: none;
         }
 
         .btn-edit:hover {
-            background-color: #d97706;
+            opacity: 0.9;
         }
 
         .validation-result {
             padding: 16px;
-            border-radius: 8px;
+            border-radius: 4px;
             margin-bottom: 20px;
+            font-size: 0.95em;
         }
 
         .validation-result.passed {
-            background-color: #dcfce7;
-            border: 1px solid #bbf7d0;
-            color: #166534;
+            background-color: rgba(0, 200, 117, 0.1);
+            border: 1px solid var(--monday-green);
+            color: #00854d;
         }
 
         .validation-result.failed {
-            background-color: #fee2e2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
+            background-color: rgba(228, 66, 88, 0.1);
+            border: 1px solid var(--monday-red);
+            color: #b01b2e;
         }
 
         .rule-check {
-            padding: 8px;
+            padding: 8px 12px;
             margin-bottom: 8px;
             border-radius: 4px;
             font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .rule-check.passed {
-            background-color: rgba(34, 197, 94, 0.1);
-            color: #166534;
+            background-color: rgba(0, 200, 117, 0.05);
+            color: #00854d;
         }
 
         .rule-check.failed {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: #991b1b;
+            background-color: rgba(228, 66, 88, 0.05);
+            color: #b01b2e;
         }
 
         /* Calendar Styles */
         .calendar-container {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            padding: 20px 24px;
+            background: #fcfcfc;
+            border-bottom: 1px solid var(--border);
         }
 
         .calendar-header h2 {
-            font-size: 1.5em;
+            font-size: 1.2em;
+            font-weight: 700;
             color: var(--foreground);
         }
 
         .calendar-nav {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         .calendar-nav button {
             padding: 8px 16px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
+            background-color: white;
+            color: var(--monday-text);
+            border: 1px solid var(--monday-border);
+            border-radius: 4px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .calendar-nav button:hover {
-            background-color: #086b8f;
+            background-color: var(--monday-background);
+            border-color: var(--monday-text-muted);
         }
 
         .calendar-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
+            background: #f8f9fb;
+            border-bottom: 1px solid var(--border);
         }
 
         .weekday {
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--muted);
             padding: 12px 0;
-            font-size: 0.9em;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .calendar-days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
         }
 
         .calendar-day {
-            aspect-ratio: 1;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            min-height: 120px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
             padding: 8px;
             background-color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            overflow-y: auto;
-            max-height: 140px;
+            transition: background 0.2s ease;
             position: relative;
         }
 
+        .calendar-day:nth-child(7n) {
+            border-right: none;
+        }
+
         .calendar-day:hover {
-            background-color: var(--surface);
-            border-color: var(--primary);
+            background-color: #f5f6f8;
         }
 
         .calendar-day.other-month {
-            background-color: #fafafa;
-            color: var(--muted);
+            background-color: #fafbfc;
+            color: #d0d4e4;
         }
 
         .calendar-day.holiday {
-            background-color: #fee2e2;
-            border-color: var(--error);
+            background-color: rgba(228, 66, 88, 0.05);
         }
 
         .calendar-day.event {
-            background-color: #fef3c7;
-            border-color: var(--warning);
+            background-color: rgba(253, 171, 61, 0.05);
         }
 
         .calendar-day-number {
             font-weight: 600;
             color: var(--foreground);
-            margin-bottom: 4px;
+            margin-bottom: 8px;
             font-size: 0.9em;
         }
 
         .calendar-day-leaves {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
         .leave-badge {
-            font-size: 0.7em;
-            padding: 2px 4px;
-            border-radius: 3px;
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: white;
             cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .leave-badge.al {
-            background-color: var(--primary);
+            background-color: var(--monday-blue);
         }
 
         .leave-badge.el {
-            background-color: var(--warning);
+            background-color: var(--monday-orange);
         }
 
         .event-badge {
@@ -787,51 +816,64 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div>
-                <h1 id="appTitle">🤖 Leave Bot</h1>
-                <p id="appSubtitle">CM Binary Digital Team</p>
-                <p class="subtitle" id="appSubtitle2">Leave Management System</p>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1 id="appTitle">🤖 Leave Bot</h1>
+            <p style="font-size: 0.8em; opacity: 0.6; margin-top: 4px;">v3.3.0</p>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="tab-button active" onclick="switchTab('app')" id="tabRequest">
+                <span>📝</span> <span class="nav-text">Request</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('calendar')" id="tabCalendar">
+                <span>📅</span> <span class="nav-text">Calendar</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('admin')" id="tabAdmin">
+                <span>📊</span> <span class="nav-text">Admin</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="connection-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h2 id="appSubtitle" style="font-size: 1.1em; font-weight: 600;">CM Binary Digital Team</h2>
             </div>
             <div class="header-controls">
-                <div style="font-size: 0.85em; opacity: 0.9; margin-right: 16px;">v3.2.0 [1776766692]</div>
-                <select class="language-selector" id="languageSelector" onchange="changeLanguage(this.value)">
+                <select class="language-selector" id="languageSelector" onchange="changeLanguage(this.value)" style="color: var(--monday-text); border-color: var(--monday-border); background: white;">
                     <option value="en">English</option>
                     <option value="zh">繁體中文</option>
                 </select>
-                <div class="connection-status">
-                    <span class="status-indicator" id="statusIndicator"></span>
-                    <span id="statusText">Connecting...</span>
-                </div>
             </div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('app')" id="tabRequest">📝 Request</button>
-            <button class="tab-button" onclick="switchTab('calendar')" id="tabCalendar">📅 Calendar</button>
-            <button class="tab-button" onclick="switchTab('admin')" id="tabAdmin">📊 Admin</button>
         </div>
 
-        <!-- Request Tab -->
-        <div id="app" class="tab-content active">
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-number" id="summaryAL">0</div>
-                    <div class="summary-label" id="labelSummaryAL">Today's AL</div>
-                    <div class="summary-names" id="summaryALNames"></div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-number" id="summaryEL">0</div>
-                    <div class="summary-label" id="labelSummaryEL">Today's EL</div>
-                    <div class="summary-names" id="summaryELNames"></div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-number" id="summaryTotal">0</div>
-                    <div class="summary-label" id="labelSummaryTotal">Total</div>
-                    <div class="summary-names" id="summaryTotalNames"></div>
-                </div>
-            </div>
+        <div class="page-container">
+            <div class="container">
+                <!-- Request Tab -->
+                <div id="app" class="tab-content active">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-number" id="summaryAL">0</div>
+                            <div class="summary-label" id="labelSummaryAL">Today's AL</div>
+                            <div class="summary-names" id="summaryALNames"></div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="summaryEL">0</div>
+                            <div class="summary-label" id="labelSummaryEL">Today's EL</div>
+                            <div class="summary-names" id="summaryELNames"></div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="summaryTotal">0</div>
+                            <div class="summary-label" id="labelSummaryTotal">Total</div>
+                            <div class="summary-names" id="summaryTotalNames"></div>
+                        </div>
+                    </div>
 
             <div class="grid">
                 <div class="card">
@@ -1455,10 +1497,18 @@
         }
 
         function switchTab(tabName) {
+            // Update Tab Content
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) targetTab.classList.add('active');
+            
+            // Update Sidebar Buttons
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            
+            // Find the button that was clicked
+            const btnId = tabName === 'app' ? 'tabRequest' : (tabName === 'calendar' ? 'tabCalendar' : 'tabAdmin');
+            const activeBtn = document.getElementById(btnId);
+            if (activeBtn) activeBtn.classList.add('active');
             
             if (tabName === 'calendar') {
                 renderCalendar();
@@ -2693,5 +2743,8 @@
             a.click();
         }
     </script>
+            </div> <!-- End of container -->
+        </div> <!-- End of page-container -->
+    </div> <!-- End of main-content -->
 </body>
 </html>
