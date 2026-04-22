@@ -1252,7 +1252,7 @@
                 labelAlBalance: 'Your AL Balance',
                 labelDays: 'days',
                 balanceInfo: 'This is private - only you can see it',
-                fullDay: 'All Day',
+                fullDay: 'Full',
                 am: 'AM',
                 pm: 'PM',
                 edit: 'Edit',
@@ -1323,8 +1323,8 @@
                 labelDays: '天',
                 balanceInfo: '這是私人的 - 只有你能看到',
                 fullDay: 'Full',
-                am: '上午',
-                pm: '下午',
+                am: 'AM',
+                pm: 'PM',
                 edit: '編輯',
                 delete: '刪除',
                 btnSave: '儲存',
@@ -1754,18 +1754,11 @@
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
                 const label = opt === 'full' ? 'Full' : (opt === 'am' ? 'AM' : 'PM');
-                html += `<button type="button" class="half-day-btn" data-value="${opt}" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
+                html += `<button type="button" class="half-day-btn" data-value="${opt}" onclick="setALFromHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
             const container = document.getElementById('alFromDayOptions');
             container.innerHTML = html;
-            container.querySelectorAll('.half-day-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setALFromHalfDay(btn.getAttribute('data-value'));
-                });
-            });
-            alFromHalfDay = 'full';
+            setALFromHalfDay('full');
             updateALDateRange();
             validateAndShowFeedback();
         }
@@ -1781,31 +1774,33 @@
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
                 const label = opt === 'full' ? 'Full' : (opt === 'am' ? 'AM' : 'PM');
-                html += `<button type="button" class="half-day-btn" data-value="${opt}" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
+                html += `<button type="button" class="half-day-btn" data-value="${opt}" onclick="setALToHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
             const container2 = document.getElementById('alToDayOptions');
             container2.innerHTML = html;
-            container2.querySelectorAll('.half-day-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setALToHalfDay(btn.getAttribute('data-value'));
-                });
-            });
-            alToHalfDay = 'full';
+            setALToHalfDay('full');
             updateALDateRange();
             validateAndShowFeedback();
         }
 
         function setALFromHalfDay(value) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             alFromHalfDay = value;
             const buttons = document.querySelectorAll('#alFromDayOptions .half-day-btn');
-            buttons.forEach((btn, index) => {
-                const isSelected = (value === 'full' && index === 0) || (value === 'am' && index === 1) || (value === 'pm' && index === 2);
-                if (isSelected) {
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-value') === value) {
                     btn.classList.add('active');
+                    btn.style.background = 'var(--monday-blue)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--monday-blue)';
                 } else {
                     btn.classList.remove('active');
+                    btn.style.background = 'white';
+                    btn.style.color = 'var(--foreground)';
+                    btn.style.borderColor = 'var(--border)';
                 }
             });
             updateALDateRange();
@@ -1813,14 +1808,23 @@
         }
 
         function setALToHalfDay(value) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             alToHalfDay = value;
             const buttons = document.querySelectorAll('#alToDayOptions .half-day-btn');
-            buttons.forEach((btn, index) => {
-                const isSelected = (value === 'full' && index === 0) || (value === 'am' && index === 1) || (value === 'pm' && index === 2);
-                if (isSelected) {
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-value') === value) {
                     btn.classList.add('active');
+                    btn.style.background = 'var(--monday-blue)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--monday-blue)';
                 } else {
                     btn.classList.remove('active');
+                    btn.style.background = 'white';
+                    btn.style.color = 'var(--foreground)';
+                    btn.style.borderColor = 'var(--border)';
                 }
             });
             updateALDateRange();
@@ -2328,7 +2332,7 @@
                     const color = COLLEAGUE_COLORS[leave.colleague] || '#999';
                     const halfDayText = leave.halfDay ? ` (${leave.halfDay.toUpperCase()})` : '';
                     const leaveLabel = leave.type === 'AL' ? `${leave.colleague} AL` : `${leave.colleague} EL`;
-                    html += `<div class="leave-badge ${leave.type.toLowerCase()}" data-id="${leave.id}" data-type="${leave.type}" draggable="true" onclick="editLeave('${leave.id}')" title="${leaveLabel}" style="background-color: ${color}; color: white; cursor: grab;">${leaveLabel}${halfDayText}</div>`;
+                    html += `<div class="leave-badge ${leave.type.toLowerCase()}" data-id="${leave.id}" data-type="${leave.type}" onclick="editLeave('${leave.id}')" title="${leaveLabel}" style="background-color: ${color}; color: white; cursor: pointer;">${leaveLabel}${halfDayText}</div>`;
                 });
                 
                 dayEvents.forEach(event => {
@@ -2358,8 +2362,8 @@
                 current.setDate(current.getDate() + 1);
             }
             
-            // Initialize drag-and-drop for date range selection
-            initializeDragAndDrop();
+            // Drag and drop disabled as per user request
+            // initializeDragAndDrop();
         }
 
         function previousMonth() {

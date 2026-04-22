@@ -168,6 +168,8 @@ app.delete('/api/event/:id', (req, res) => {
   res.json(removed);
 });
 
+
+
 app.delete('/api/leave/:id', (req, res) => {
   const { id } = req.params;
   
@@ -187,6 +189,8 @@ app.delete('/api/leave/:id', (req, res) => {
 
   res.json(removed);
 });
+
+
 
 // WebSocket connections
 const clients = new Set();
