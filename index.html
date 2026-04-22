@@ -1646,11 +1646,21 @@
             const activeBtn = document.getElementById(btnId);
             if (activeBtn) activeBtn.classList.add('active');
             
+            // Save current tab to URL hash
+            window.location.hash = tabName;
+            
             if (tabName === 'calendar') {
                 renderCalendar();
             } else if (tabName === 'admin') {
                 updateAdminTab();
             }
+        }
+        
+        function restoreTabFromHash() {
+            const hash = window.location.hash.slice(1) || 'app';
+            const validTabs = ['app', 'calendar', 'admin'];
+            const tabName = validTabs.includes(hash) ? hash : 'app';
+            switchTab(tabName);
         }
 
         function updateAlBalanceBox() {
@@ -1939,8 +1949,12 @@
             
             updateUILanguage();
             initializeYearMonthSelectors();
+            restoreTabFromHash();
             connectWebSocket();
         });
+        
+        // Restore tab when hash changes (e.g., browser back/forward)
+        window.addEventListener('hashchange', restoreTabFromHash);
 
         function resetForm() {
             document.getElementById('leaveForm').reset();
