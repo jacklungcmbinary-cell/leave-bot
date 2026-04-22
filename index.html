@@ -1322,7 +1322,7 @@
                 labelAlBalance: '你的年假餘額',
                 labelDays: '天',
                 balanceInfo: '這是私人的 - 只有你能看到',
-                fullDay: '全天',
+                fullDay: 'Full',
                 am: '上午',
                 pm: '下午',
                 edit: '編輯',
@@ -1753,10 +1753,18 @@
             const t = translations[currentLanguage];
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
-                const label = t[opt] || opt.toUpperCase();
-                html += `<button type="button" class="half-day-btn" onclick="setALFromHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
+                const label = opt === 'full' ? 'Full' : (opt === 'am' ? 'AM' : 'PM');
+                html += `<button type="button" class="half-day-btn" data-value="${opt}" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
-            document.getElementById('alFromDayOptions').innerHTML = html;
+            const container = document.getElementById('alFromDayOptions');
+            container.innerHTML = html;
+            container.querySelectorAll('.half-day-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setALFromHalfDay(btn.getAttribute('data-value'));
+                });
+            });
             alFromHalfDay = 'full';
             updateALDateRange();
             validateAndShowFeedback();
@@ -1772,10 +1780,18 @@
             const t = translations[currentLanguage];
             let html = '';
             ['full', 'am', 'pm'].forEach(opt => {
-                const label = t[opt] || opt.toUpperCase();
-                html += `<button type="button" class="half-day-btn" onclick="setALToHalfDay('${opt}')" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
+                const label = opt === 'full' ? 'Full' : (opt === 'am' ? 'AM' : 'PM');
+                html += `<button type="button" class="half-day-btn" data-value="${opt}" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; background: white; color: var(--foreground); font-weight: 500; transition: all 0.2s;">${label}</button>`;
             });
-            document.getElementById('alToDayOptions').innerHTML = html;
+            const container2 = document.getElementById('alToDayOptions');
+            container2.innerHTML = html;
+            container2.querySelectorAll('.half-day-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setALToHalfDay(btn.getAttribute('data-value'));
+                });
+            });
             alToHalfDay = 'full';
             updateALDateRange();
             validateAndShowFeedback();
@@ -2243,7 +2259,7 @@
                 alHtml += '<p style="color: var(--muted);">No annual leave requests</p>';
             } else {
                 alLeaves.forEach(leave => {
-                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (' + (currentLanguage === 'zh' ? '全天' : 'Full Day') + ')';
+                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (Full)';
                     const editBtnText = currentLanguage === 'zh' ? '編輯' : 'Edit';
                     const deleteBtnText = currentLanguage === 'zh' ? '刪除' : 'Delete';
                     alHtml += `<div class="leave-item"><div class="leave-item-info">${formatDate(leave.date)}${halfDayText}</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave('${leave.id}')">${editBtnText}</button><button class="btn-danger" onclick="deleteLeave('${leave.id}')">${deleteBtnText}</button></div></div>`;
@@ -2312,7 +2328,7 @@
                     const color = COLLEAGUE_COLORS[leave.colleague] || '#999';
                     const halfDayText = leave.halfDay ? ` (${leave.halfDay.toUpperCase()})` : '';
                     const leaveLabel = leave.type === 'AL' ? `${leave.colleague} AL` : `${leave.colleague} EL`;
-                    html += `<div class="leave-badge ${leave.type.toLowerCase()}" onclick="editLeave('${leave.id}')" title="${leaveLabel}" style="background-color: ${color}; color: white;">${leaveLabel}${halfDayText}</div>`;
+                    html += `<div class="leave-badge ${leave.type.toLowerCase()}" data-id="${leave.id}" data-type="${leave.type}" draggable="true" onclick="editLeave('${leave.id}')" title="${leaveLabel}" style="background-color: ${color}; color: white; cursor: grab;">${leaveLabel}${halfDayText}</div>`;
                 });
                 
                 dayEvents.forEach(event => {
@@ -2407,114 +2423,74 @@
             renderCalendar();
         }
 
-        let isDragging = false;
-        let dragStartDate = null;
-        let dragEndDate = null;
+        // Badge drag-and-drop to move leave to another date
+        let draggedBadge = null;
+        let draggedLeaveId = null;
+        let draggedLeaveType = null;
 
         function initializeDragAndDrop() {
+            // Delegate drag events on calendar
             const calendarDays = document.getElementById('calendarDays');
             if (!calendarDays) return;
             
-            // Use event delegation on the container
-            calendarDays.addEventListener('mousedown', (e) => {
-                const day = e.target.closest('.calendar-day');
-                if (!day) return;
+            // Setup drag start on badges
+            calendarDays.addEventListener('dragstart', (e) => {
+                const badge = e.target.closest('.leave-badge');
+                if (!badge) return;
                 
-                // Skip if clicking on badges
-                if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) return;
-                
-                isDragging = true;
-                dragStartDate = day.getAttribute('data-date');
-                dragEndDate = dragStartDate;
-                e.preventDefault();
+                draggedBadge = badge;
+                draggedLeaveId = badge.getAttribute('data-id');
+                draggedLeaveType = badge.getAttribute('data-type');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedLeaveId);
+                e.target.style.cursor = 'grabbing';
             });
             
-            calendarDays.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                
+            // Setup drag over and drop on calendar days
+            calendarDays.addEventListener('dragover', (e) => {
+                if (draggedLeaveId) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    const day = e.target.closest('.calendar-day');
+                    if (day) {
+                        day.style.backgroundColor = 'rgba(10, 126, 164, 0.1)';
+                    }
+                }
+            });
+            
+            calendarDays.addEventListener('dragleave', (e) => {
                 const day = e.target.closest('.calendar-day');
                 if (day) {
-                    dragEndDate = day.getAttribute('data-date');
-                    updateDragSelection();
+                    day.style.backgroundColor = '';
                 }
             });
             
-            document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    if (dragStartDate && dragEndDate) {
-                        handleDragSelection(dragStartDate, dragEndDate);
+            calendarDays.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const day = e.target.closest('.calendar-day');
+                if (day && draggedLeaveId) {
+                    const newDate = day.getAttribute('data-date');
+                    if (newDate) {
+                        moveLeaveToDate(draggedLeaveId, draggedLeaveType, newDate);
                     }
-                    clearDragSelection();
+                    day.style.backgroundColor = '';
                 }
+                if (draggedBadge) draggedBadge.style.cursor = 'grab';
+                draggedBadge = null;
+                draggedLeaveId = null;
+                draggedLeaveType = null;
             });
         }
-
-        function updateDragSelection() {
-            if (!dragStartDate || !dragEndDate) return;
-            
-            // Parse ISO dates correctly
-            const [startY, startM, startD] = dragStartDate.split('-').map(Number);
-            const [endY, endM, endD] = dragEndDate.split('-').map(Number);
-            const start = new Date(startY, startM - 1, startD);
-            const end = new Date(endY, endM - 1, endD);
-            
-            // Ensure start <= end
-            const minDate = start <= end ? start : end;
-            const maxDate = start <= end ? end : start;
-            
-            document.querySelectorAll('.calendar-day').forEach(day => {
-                const dateStr = day.getAttribute('data-date');
-                if (!dateStr) return;
-                const [y, m, d] = dateStr.split('-').map(Number);
-                const date = new Date(y, m - 1, d);
-                if (date >= minDate && date <= maxDate) {
-                    day.classList.add('drag-selecting');
-                } else {
-                    day.classList.remove('drag-selecting');
-                }
-            });
-        }
-
-        function clearDragSelection() {
-            document.querySelectorAll('.calendar-day').forEach(day => {
-                day.classList.remove('drag-selecting');
-            });
-            dragStartDate = null;
-            dragEndDate = null;
-        }
-
-        function handleDragSelection(start, end) {
-            // Parse and compare dates properly
-            const [startY, startM, startD] = start.split('-').map(Number);
-            const [endY, endM, endD] = end.split('-').map(Number);
-            const startDate = new Date(startY, startM - 1, startD);
-            const endDate = new Date(endY, endM - 1, endD);
-            
-            const minDate = startDate <= endDate ? start : end;
-            const maxDate = startDate <= endDate ? end : start;
-            
-            // Auto-fill Request Tab form
-            switchTab('app');
-            document.getElementById('leaveType').value = 'AL';
-            updateDateSelectionUI();
-            
-            // Set month
-            const [y, m] = minDate.split('-');
-            document.getElementById('alMonth').value = `${y}-${m}`;
-            generateALDateSelector();
-            
-            // Set range
-            setTimeout(() => {
-                const fromSelect = document.getElementById('alFromDate');
-                const toSelect = document.getElementById('alToDate');
-                if (fromSelect && toSelect) {
-                    fromSelect.value = minDate;
-                    updateALFromDate();
-                    toSelect.value = maxDate;
-                    updateALToDate();
-                }
-            }, 100);
+        
+        function moveLeaveToDate(leaveId, leaveType, newDate) {
+            // Send update to server via WebSocket
+            const message = {
+                type: 'moveLeave',
+                leaveId: leaveId,
+                leaveType: leaveType,
+                newDate: newDate
+            };
+            socket.send(JSON.stringify(message));
         }
 
         let editingEventId = null;
