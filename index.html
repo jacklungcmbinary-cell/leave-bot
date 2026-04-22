@@ -249,9 +249,11 @@
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1em;
+            border-radius: 4px;
+            font-size: 0.95em;
             font-family: inherit;
+            color: var(--monday-text);
+            background-color: white;
         }
 
         select:focus, input:focus {
@@ -271,11 +273,12 @@
         }
 
         .al-date-selector {
-            background: white;
+            background: #fcfcfc;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 4px;
             padding: 12px;
             margin-bottom: 12px;
+            color: var(--monday-text);
         }
 
         .al-date-row {
@@ -322,11 +325,12 @@
         }
 
         .al-balance-box {
-            background: linear-gradient(135deg, rgba(10, 126, 164, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
+            background: rgba(0, 115, 234, 0.05);
+            border: 1px solid var(--monday-blue);
+            border-radius: 4px;
             padding: 16px;
             margin-bottom: 20px;
+            color: var(--monday-text);
         }
 
         .al-balance-title {
@@ -626,21 +630,23 @@
         }
 
         .event-badge {
-            font-size: 0.65em;
-            padding: 1px 3px;
-            border-radius: 2px;
-            background-color: var(--warning);
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: var(--monday-orange);
             color: white;
-            margin-top: 2px;
+            margin-top: 4px;
+            font-weight: 600;
         }
 
         .holiday-badge {
-            font-size: 0.65em;
-            padding: 1px 3px;
-            border-radius: 2px;
-            background-color: var(--error);
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: var(--monday-red);
             color: white;
-            margin-top: 2px;
+            margin-top: 4px;
+            font-weight: 600;
         }
 
         .colleague-card {
@@ -656,8 +662,9 @@
         }
 
         .colleague-card:hover {
-            background-color: var(--border);
+            background-color: #f5f6f8;
             transform: translateX(4px);
+            border-color: var(--monday-blue);
         }
 
         .colleague-avatar {
@@ -751,11 +758,13 @@
 
         .modal-content {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
+            border-radius: 8px;
+            padding: 32px;
             max-width: 500px;
             width: 90%;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            color: var(--monday-text);
         }
 
         .modal-header {
@@ -767,13 +776,14 @@
 
         .modal-close {
             position: absolute;
-            top: 16px;
-            right: 16px;
+            top: 20px;
+            right: 20px;
             background: none;
             border: none;
-            font-size: 1.5em;
+            font-size: 1.2em;
             cursor: pointer;
-            color: var(--muted);
+            color: var(--monday-text-muted);
+            line-height: 1;
         }
 
         @media (max-width: 768px) {
