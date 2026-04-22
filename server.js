@@ -9,8 +9,8 @@ const axios = require('axios');
 const app = express();
 
 // Monday.com Configuration
-const MONDAY_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4yMDVaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.N_jtFty6oCii738vTDwXGNNs5dQXfVtXAZZpspn9sQg";
-const MONDAY_BOARD_ID = "5027993274";
+const MONDAY_API_KEY = process.env.MONDAY_API_KEY;
+const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID;
 
 async function syncToMonday(record) {
   const url = "https://api.monday.com/v2";
@@ -60,6 +60,100 @@ async function syncToMonday(record) {
   }
   return null;
 }
+
+async function updateMondayItem(record) {
+  if (!record.mondayId) {
+    console.warn('Cannot update Monday.com item: mondayId is missing for record', record.id);
+    return null;
+  }
+
+  const url = "https://api.monday.com/v2";
+  const itemName = `${record.colleague} - ${record.type}${record.halfDay ? ' (' + record.halfDay.toUpperCase() + ')' : ''}`;
+  const columnValues = {
+    "date4": { "date": record.date },
+    "status": { "label": record.type === 'AL' ? 'Working' : 'Done' }
+  };
+
+  const query = `
+    mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+      change_multiple_column_values (
+        item_id: $itemId,
+        board_id: $boardId,
+        column_values: $columnValues
+      ) {
+        id
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(url, {
+      query: query,
+      variables: {
+        itemId: record.mondayId,
+        boardId: MONDAY_BOARD_ID,
+        columnValues: JSON.stringify(columnValues)
+      }
+    }, {
+      headers: {
+        'Authorization': MONDAY_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.errors) {
+      console.error('Monday API Errors (update):', response.data.errors);
+    } else {
+      console.log('Successfully updated Monday item:', record.mondayId);
+      return record.mondayId;
+    }
+  } catch (error) {
+    console.error('Error updating Monday item:', error.message);
+  }
+  return null;
+}
+
+async function deleteMondayItem(mondayId) {
+  if (!mondayId) {
+    console.warn('Cannot delete Monday.com item: mondayId is missing.');
+    return false;
+  }
+
+  const url = "https://api.monday.com/v2";
+  const query = `
+    mutation ($itemId: ID!) {
+      delete_item (item_id: $itemId) {
+        id
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(url, {
+      query: query,
+      variables: {
+        itemId: mondayId
+      }
+    }, {
+      headers: {
+        'Authorization': MONDAY_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.errors) {
+      console.error('Monday API Errors (delete):', response.data.errors);
+      return false;
+    } else {
+      console.log('Successfully deleted Monday item:', mondayId);
+      return true;
+    }
+  } catch (error) {
+    console.error('Error deleting Monday item:', error.message);
+    return false;
+  }
+}
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 console.log('Using HTTP - proxy will handle HTTPS');
@@ -146,6 +240,11 @@ app.post('/api/leave', (req, res) => {
       saveData(data);
     }
   });
+
+  // Also sync to Monday.com if it's an update
+  if (record.mondayId) {
+    updateMondayItem(record);
+  }
 
   // Broadcast to all connected clients
   broadcastUpdate({
@@ -249,7 +348,44 @@ app.delete('/api/event/:id', (req, res) => {
 
 
 
-app.delete('/api/leave/:id', (req, res) => {
+app.put('/api/leave/:id', async (req, res) => {
+  const { id } = req.params;
+  const { colleague, type, date, halfDay } = req.body;
+
+  const index = data.leaveRecords.findIndex(r => r.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Record not found' });
+  }
+
+  const record = data.leaveRecords[index];
+  record.colleague = colleague || record.colleague;
+  record.type = type || record.type;
+  record.date = date || record.date;
+  record.halfDay = halfDay || null;
+
+  saveData(data);
+
+  // Update Monday.com item
+  if (record.mondayId) {
+    await updateMondayItem(record);
+  } else {
+    // If for some reason mondayId is missing, try to create it
+    const mondayId = await syncToMonday(record);
+    if (mondayId) {
+      record.mondayId = mondayId;
+      saveData(data);
+    }
+  }
+
+  broadcastUpdate({
+    type: 'update',
+    record
+  });
+
+  res.json(record);
+});
+
+app.delete('/api/leave/:id', async (req, res) => {
   const { id } = req.params;
   
   const index = data.leaveRecords.findIndex(r => r.id === id);
@@ -259,6 +395,11 @@ app.delete('/api/leave/:id', (req, res) => {
 
   const removed = data.leaveRecords.splice(index, 1)[0];
   saveData(data);
+
+  // Delete from Monday.com
+  if (removed.mondayId) {
+    await deleteMondayItem(removed.mondayId);
+  }
 
   // Broadcast to all connected clients
   broadcastUpdate({
