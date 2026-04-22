@@ -9,9 +9,6 @@
     <meta http-equiv="Expires" content="-1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, no-cache">
     <title>CM Binary Digital Team - Leave Management Bot v3.3.0 [1776766692]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -20,13 +17,13 @@
         }
 
         :root {
-            --primary: #2563eb;
-            --primary-light: #60a5fa;
-            --primary-dark: #1e40af;
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
             --accent: #f59e0b;
             --warning: #f59e0b;
             --error: #ef4444;
-            --success: #10b981;
+            --success: #22c55e;
             --background: #f8fafc;
             --surface: #ffffff;
             --foreground: #0f172a;
@@ -34,302 +31,290 @@
             --border: #e2e8f0;
             --gradient-start: #1e40af;
             --gradient-end: #3b82f6;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --radius: 12px;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--background);
             color: var(--foreground);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        h1, h2, h3, h4 {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            letter-spacing: -0.02em;
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 1280px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 32px 20px;
+            padding: 20px;
         }
 
         header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             color: white;
-            padding: 48px 40px;
-            border-radius: 24px;
+            padding: 50px 40px;
+            text-align: center;
+            border-radius: 16px;
             margin-bottom: 40px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -10%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-            pointer-events: none;
+        header > div:first-child {
+            flex: 1;
         }
 
         header h1 {
-            font-size: 3em;
-            margin-bottom: 12px;
-            font-weight: 800;
-            background: linear-gradient(to right, #ffffff, #93c5fd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: slideIn 0.8s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         header p {
             font-size: 1.1em;
-            opacity: 0.8;
+            opacity: 0.95;
             font-weight: 500;
+        }
+
+        header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 8px;
         }
 
         .header-controls {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             align-items: center;
-            z-index: 1;
         }
 
         .language-selector {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 10px 16px;
-            border-radius: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            backdrop-filter: blur(8px);
         }
 
         .language-selector:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
         }
 
         .status-indicator {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background-color: var(--error);
-            box-shadow: 0 0 10px var(--error);
+            background-color: #ef4444;
+            animation: pulse 2s infinite;
         }
 
         .status-indicator.connected {
-            background-color: var(--success);
-            box-shadow: 0 0 10px var(--success);
+            background-color: #22c55e;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 32px;
-            background: #f1f5f9;
-            padding: 6px;
-            border-radius: 14px;
-            width: fit-content;
+            gap: 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
         }
 
         .tab-button {
-            padding: 10px 24px;
-            background: transparent;
+            padding: 14px 24px;
+            background: none;
             border: none;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 1em;
             font-weight: 600;
             color: var(--muted);
-            border-radius: 10px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
         }
 
         .tab-button.active {
-            background: white;
             color: var(--primary);
-            box-shadow: var(--shadow-sm);
+            border-bottom-color: var(--primary);
         }
 
-        .tab-button:hover:not(.active) {
+        .tab-button:hover {
             color: var(--foreground);
-            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 28px;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-light);
         }
 
         .card h3 {
-            margin-bottom: 20px;
-            font-size: 1.25em;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--foreground);
         }
 
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
+            gap: 16px;
+            margin-bottom: 30px;
         }
 
         .summary-item {
-            background: white;
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(59, 130, 246, 0.02) 100%);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px 24px;
+            border-radius: 12px;
+            padding: 24px;
             text-align: center;
-            box-shadow: var(--shadow);
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
 
         .summary-item:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
             border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+            transform: translateY(-2px);
         }
 
         .summary-number {
-            font-size: 3em;
-            font-weight: 800;
+            font-size: 2.5em;
+            font-weight: 700;
             color: var(--primary);
-            line-height: 1;
-            margin-bottom: 12px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin-bottom: 8px;
         }
 
         .summary-label {
-            font-size: 0.95em;
-            font-weight: 600;
+            font-size: 0.9em;
             color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 600;
-            font-size: 0.9em;
             color: var(--foreground);
         }
 
         select, input[type="date"], input[type="text"], input[type="number"], input[type="month"] {
             width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             font-size: 1em;
             font-family: inherit;
-            transition: all 0.2s;
-            background: #fcfdfe;
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(10, 126, 164, 0.1);
         }
 
-        .btn-primary {
+        .date-range-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .date-range-container input {
+            flex: 1;
+        }
+
+        .al-date-selector {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .al-date-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .al-date-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .al-date-row input[type="date"] {
+            margin: 0;
+        }
+
+        .al-half-day-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .half-day-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .half-day-btn.active {
             background: var(--primary);
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            border-color: var(--primary);
         }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background: #e2e8f0;
-            color: #1e293b;
+        .half-day-btn:hover {
+            border-color: var(--primary);
         }
 
         .al-balance-box {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            border: none;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            color: white;
-            box-shadow: var(--shadow-md);
-        }
-        .al-balance-title {
-            font-size: 0.9em;
-            font-weight: 600;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .al-balance-value {
-            font-size: 2.5em;
-            font-weight: 800;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, rgba(10, 126, 164, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
         .al-balance-title {
@@ -399,89 +384,81 @@
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.15);
         }
 
         .btn-primary:hover {
-            background: var(--primary-dark);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25);
         }
 
         .btn-secondary {
-            background-color: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
+            background-color: var(--surface);
+            color: var(--foreground);
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background-color: #e2e8f0;
-            color: #1e293b;
+            background-color: var(--border);
         }
 
         .btn-danger {
-            background-color: #fff1f2;
-            color: var(--error);
-            border: 1px solid #fecdd3;
+            background-color: var(--error);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.85em;
         }
 
         .btn-danger:hover {
-            background-color: var(--error);
-            color: white;
-            border-color: var(--error);
+            background-color: #dc2626;
         }
 
         .btn-edit {
-            background-color: #f1f5f9;
-            color: var(--primary);
-            border: 1px solid #e2e8f0;
-            padding: 8px 14px;
-            border-radius: 8px;
+            background-color: var(--accent);
+            color: white;
+            padding: 4px 8px;
             font-size: 0.85em;
         }
 
         .btn-edit:hover {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            background-color: #d97706;
         }
 
         .validation-result {
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            font-weight: 500;
         }
 
         .validation-result.passed {
-            background-color: #ecfdf5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
+            background-color: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
         }
 
         .validation-result.failed {
-            background-color: #fef2f2;
-            color: #991b1b;
+            background-color: #fee2e2;
             border: 1px solid #fecaca;
+            color: #991b1b;
         }
 
         .rule-check {
-            padding: 10px 14px;
-            margin-bottom: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
             font-size: 0.9em;
-            font-weight: 500;
         }
 
         .rule-check.passed {
-            background-color: #ecfdf5;
-            color: #065f46;
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #166534;
         }
 
         .rule-check.failed {
-            background-color: #fef2f2;
+            background-color: rgba(239, 68, 68, 0.1);
             color: #991b1b;
         }
 
@@ -489,25 +466,21 @@
         .calendar-container {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 32px;
-            margin-bottom: 32px;
-            box-shadow: var(--shadow);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
         }
 
         .calendar-header h2 {
-            font-size: 1.75em;
-            font-weight: 800;
-            color: #1e293b;
-            margin: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.5em;
+            color: var(--foreground);
         }
 
         .calendar-nav {
@@ -516,233 +489,209 @@
         }
 
         .calendar-nav button {
-            background-color: white;
-            color: #475569;
-            border: 1px solid var(--border);
-            padding: 10px 18px;
-            border-radius: 12px;
+            padding: 8px 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 700;
-            transition: all 0.2s;
-            box-shadow: var(--shadow-sm);
         }
 
         .calendar-nav button:hover {
-            background-color: #f8fafc;
-            border-color: var(--primary-light);
-            color: var(--primary);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
+            background-color: #086b8f;
         }
 
         .calendar-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
-            margin-bottom: 12px;
-            padding: 0 4px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
         .weekday {
             text-align: center;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--muted);
-            font-size: 0.85em;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            padding: 12px 0;
+            font-size: 0.9em;
         }
 
         .calendar-days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 8px;
         }
 
         .calendar-day {
             aspect-ratio: 1;
-            background-color: white;
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: 8px;
+            padding: 8px;
+            background-color: white;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             overflow-y: auto;
+            max-height: 140px;
             position: relative;
-            box-shadow: var(--shadow-sm);
         }
 
         .calendar-day:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-light);
-            z-index: 1;
+            background-color: var(--surface);
+            border-color: var(--primary);
         }
 
         .calendar-day.other-month {
-            background-color: #f8fafc;
-            opacity: 0.5;
+            background-color: #fafafa;
+            color: var(--muted);
         }
 
         .calendar-day.holiday {
-            background-color: #fff1f2;
-            border-color: #fecdd3;
+            background-color: #fee2e2;
+            border-color: var(--error);
         }
 
         .calendar-day.event {
-            background-color: #fffbeb;
-            border-color: #fde68a;
+            background-color: #fef3c7;
+            border-color: var(--warning);
         }
 
         .calendar-day-number {
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
-            font-size: 1em;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: 4px;
+            font-size: 0.9em;
         }
 
         .calendar-day-leaves {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .leave-badge {
-            font-size: 0.75em;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-weight: 600;
+            font-size: 0.7em;
+            padding: 2px 4px;
+            border-radius: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: white;
             cursor: pointer;
-            transition: transform 0.1s;
         }
 
-        .leave-badge:hover {
-            transform: scale(1.02);
-            filter: brightness(1.1);
+        .leave-badge.al {
+            background-color: var(--primary);
+        }
+
+        .leave-badge.el {
+            background-color: var(--warning);
         }
 
         .event-badge {
-            font-size: 0.7em;
-            padding: 3px 6px;
-            border-radius: 6px;
+            font-size: 0.65em;
+            padding: 1px 3px;
+            border-radius: 2px;
             background-color: var(--warning);
             color: white;
-            font-weight: 600;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .holiday-badge {
-            font-size: 0.7em;
-            padding: 3px 6px;
-            border-radius: 6px;
+            font-size: 0.65em;
+            padding: 1px 3px;
+            border-radius: 2px;
             background-color: var(--error);
             color: white;
-            font-weight: 600;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .colleague-card {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: #f8fafc;
-            border-radius: 16px;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: 8px;
             margin-bottom: 12px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
+            transition: all 0.3s ease;
         }
 
         .colleague-card:hover {
-            background-color: white;
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow);
-            transform: translateX(6px);
+            background-color: var(--border);
+            transform: translateX(4px);
         }
 
         .colleague-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 800;
-            font-size: 1.2em;
-            box-shadow: var(--shadow-sm);
+            font-weight: 700;
+            font-size: 1.1em;
         }
 
         .colleague-info h4 {
-            font-size: 1em;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .colleague-info p {
             font-size: 0.85em;
-            font-weight: 500;
             color: var(--muted);
         }
 
         .rule-item {
-            padding: 16px;
+            padding: 12px;
             border-left: 4px solid var(--primary);
-            background-color: #f0f7ff;
+            background-color: rgba(10, 126, 164, 0.05);
             margin-bottom: 12px;
-            border-radius: 12px;
-            font-size: 0.95em;
-            font-weight: 500;
-            color: #1e40af;
+            border-radius: 4px;
         }
 
         .buddy-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             margin-top: 16px;
         }
 
-        .buddy-table th {
-            padding: 12px 16px;
+        .buddy-table th,
+        .buddy-table td {
+            padding: 12px;
             text-align: left;
-            font-weight: 700;
-            color: var(--muted);
-            font-size: 0.85em;
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--border);
+            border-bottom: 1px solid var(--border);
         }
 
-        .buddy-table td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95em;
+        .buddy-table th {
+            background-color: var(--surface);
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .buddy-table tr:hover {
+            background-color: var(--surface);
         }
 
         .leave-item {
-            background: #f8fafc;
-            border-radius: 14px;
-            padding: 16px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s;
-        }
-
-        .leave-item:hover {
-            background: white;
-            box-shadow: var(--shadow-sm);
         }
 
         .leave-item-info {
-            font-weight: 600;
-            color: #334155;
+            flex: 1;
+        }
+
+        .leave-item-actions {
+            display: flex;
+            gap: 8px;
         }
 
         .modal {
@@ -752,62 +701,41 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            padding: 20px;
         }
 
         .modal.active {
             display: flex;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
         }
 
         .modal-content {
             background: white;
-            border-radius: 24px;
-            padding: 40px;
+            border-radius: 12px;
+            padding: 30px;
             max-width: 500px;
-            width: 100%;
-            box-shadow: var(--shadow-lg);
-            position: relative;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
         .modal-header {
-            font-size: 1.5em;
-            font-weight: 800;
-            margin-bottom: 24px;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
             color: var(--foreground);
         }
 
         .modal-close {
             position: absolute;
-            top: 24px;
-            right: 24px;
-            background: #f1f5f9;
+            top: 16px;
+            right: 16px;
+            background: none;
             border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
+            font-size: 1.5em;
             cursor: pointer;
             color: var(--muted);
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background: #e2e8f0;
-            color: var(--foreground);
         }
 
         @media (max-width: 768px) {
@@ -853,42 +781,43 @@
     <div class="container">
         <header>
             <div>
-                <h1 id="titleMain">Leave Bot</h1>
-                <p id="subtitle">CM Binary Digital Team</p>
-                <div class="subtitle" style="margin-top: 10px; font-size: 0.85em; opacity: 0.6;" id="versionTag">Leave Management System v3.3.0</div>
+                <h1 id="appTitle">🤖 Leave Bot</h1>
+                <p id="appSubtitle">CM Binary Digital Team</p>
+                <p class="subtitle" id="appSubtitle2">Leave Management System</p>
             </div>
             <div class="header-controls">
+                <div style="font-size: 0.85em; opacity: 0.9; margin-right: 16px;">v3.2.0 [1776766692]</div>
                 <select class="language-selector" id="languageSelector" onchange="changeLanguage(this.value)">
                     <option value="en">English</option>
                     <option value="zh">繁體中文</option>
                 </select>
                 <div class="connection-status">
-                    <div id="statusIndicator" class="status-indicator"></div>
-                    <span id="statusText" style="font-weight: 600; font-size: 0.85em; opacity: 0.8;">Connecting...</span>
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Connecting...</span>
                 </div>
             </div>
         </header>
 
         <div class="tabs">
-            <button class="tab-button active" id="tabRequest" onclick="showTab('request')">Request</button>
-            <button class="tab-button" id="tabCalendar" onclick="showTab('calendar')">Calendar</button>
-            <button class="tab-button" id="tabAdmin" onclick="showTab('admin')">Admin</button>
+            <button class="tab-button active" onclick="switchTab('app')" id="tabRequest">📝 Request</button>
+            <button class="tab-button" onclick="switchTab('calendar')" id="tabCalendar">📅 Calendar</button>
+            <button class="tab-button" onclick="switchTab('admin')" id="tabAdmin">📊 Admin</button>
         </div>
 
         <!-- Request Tab -->
-        <div id="request" class="tab-content active">
+        <div id="app" class="tab-content active">
             <div class="summary-grid">
                 <div class="summary-item">
-                    <div class="summary-label" id="labelSummaryAL">Today's AL</div>
-                    <div class="summary-number" id="summaryAL">0</div>
+                    <div class="summary-number" id="alToday">0</div>
+                    <div class="summary-label" id="labelAlToday">AL Today</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label" id="labelSummaryEL">Today's EL</div>
-                    <div class="summary-number" id="summaryEL">0</div>
+                    <div class="summary-number" id="elToday">0</div>
+                    <div class="summary-label" id="labelElToday">EL Today</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label" id="labelSummaryTotal">Total</div>
-                    <div class="summary-number" id="summaryTotal">0</div>
+                    <div class="summary-number" id="totalToday">0</div>
+                    <div class="summary-label" id="labelTotalToday">Total</div>
                 </div>
             </div>
 
@@ -1042,29 +971,38 @@
                 </div>
                 <div id="eventsList"></div>
             </div>
-            <!-- Admin Tab -->
+        </div>
+
+        <!-- Admin Tab -->
         <div id="admin" class="tab-content">
             <div class="summary-grid">
                 <div class="summary-item">
-                    <div class="summary-label" id="labelTotalRequests">Total Requests</div>
                     <div class="summary-number" id="totalRequests">0</div>
+                    <div class="summary-label" id="labelTotalRequests">Total Requests</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label" id="labelTotalAL">Annual Leave</div>
                     <div class="summary-number" id="totalAL">0</div>
+                    <div class="summary-label" id="labelTotalAL">Annual Leave</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label" id="labelTotalEL">Early Leave</div>
                     <div class="summary-number" id="totalEL">0</div>
+                    <div class="summary-label" id="labelTotalEL">Early Leave</div>
                 </div>
             </div>
 
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h3 id="titleAllLeaves" style="margin: 0;">📋 All Leaves</h3>
-                    <button class="btn-secondary" style="font-size: 0.9em; padding: 8px 16px;" onclick="exportToCSV()" id="btnExport">Export CSV</button>
-                </div>
-                <div id="adminLeavesList"></div>
+                <h3 id="titleTeamSummary">👥 Team Leave Summary</h3>
+                <div id="teamSummary"></div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleAllLeaves">📋 All Leave Requests</h3>
+                <div id="allLeavesList"></div>
+            </div>
+
+            <div class="card">
+                <h3 id="titleExport">📥 Export</h3>
+                <button class="btn-primary" id="btnExport" onclick="exportCSV()">📥 Export as CSV</button>
             </div>
         </div>
     </div>
