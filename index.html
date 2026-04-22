@@ -1392,6 +1392,13 @@
 
         function updateUILanguage() {
             const t = translations[currentLanguage];
+            
+            // Update language selector value to match currentLanguage
+            const langSelector = document.getElementById('languageSelector');
+            if (langSelector) {
+                langSelector.value = currentLanguage;
+            }
+
             const ids = [
                 ['appTitle', t.appTitle],
                 ['appSubtitle', t.appSubtitle],
@@ -2111,8 +2118,10 @@
                 alHtml += '<p style="color: var(--muted);">No annual leave requests</p>';
             } else {
                 alLeaves.forEach(leave => {
-                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (Full Day)';
-                    alHtml += '<div class="leave-item"><div class="leave-item-info">' + formatDate(leave.date) + halfDayText + '</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave(\'' + leave.id + '\');">Edit</button><button class="btn-danger" onclick="deleteLeave(\'' + leave.id + '\');">Delete</button></div></div>';
+                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (' + (currentLanguage === 'zh' ? '全天' : 'Full Day') + ')';
+                    const editBtnText = currentLanguage === 'zh' ? '編輯' : 'Edit';
+                    const deleteBtnText = currentLanguage === 'zh' ? '刪除' : 'Delete';
+                    alHtml += `<div class="leave-item"><div class="leave-item-info">${formatDate(leave.date)}${halfDayText}</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave('${leave.id}')">${editBtnText}</button><button class="btn-danger" onclick="deleteLeave('${leave.id}')">${deleteBtnText}</button></div></div>`;
                 });
             }
             document.getElementById('myLeavesAL').innerHTML = alHtml;
@@ -2123,7 +2132,9 @@
                 elHtml += '<p style="color: var(--muted);">No early leave requests</p>';
             } else {
                 elLeaves.forEach(leave => {
-                    elHtml += '<div class="leave-item"><div class="leave-item-info">' + formatDate(leave.date) + '</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave(\'' + leave.id + '\');">Edit</button><button class="btn-danger" onclick="deleteLeave(\'' + leave.id + '\');">Delete</button></div></div>';
+                    const editBtnText = currentLanguage === 'zh' ? '編輯' : 'Edit';
+                    const deleteBtnText = currentLanguage === 'zh' ? '刪除' : 'Delete';
+                    elHtml += `<div class="leave-item"><div class="leave-item-info">${formatDate(leave.date)}</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave('${leave.id}')">${editBtnText}</button><button class="btn-danger" onclick="deleteLeave('${leave.id}')">${deleteBtnText}</button></div></div>`;
                 });
             }
             document.getElementById('myLeavesEL').innerHTML = elHtml;
