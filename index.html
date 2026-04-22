@@ -1784,27 +1784,47 @@
         function setALFromHalfDay(value) {
             alFromHalfDay = value;
             document.querySelectorAll('#alFromDayOptions .half-day-btn').forEach(btn => {
-                const isSelected = (value === 'full' && btn.textContent === 'Full Day') || 
-                                   (value === 'am' && btn.textContent === 'AM') || 
-                                   (value === 'pm' && btn.textContent === 'PM');
-                btn.style.background = isSelected ? 'var(--primary)' : 'white';
-                btn.style.color = isSelected ? 'white' : 'var(--foreground)';
-                btn.style.borderColor = isSelected ? 'var(--primary)' : 'var(--border)';
+                const btnText = btn.textContent.trim().toLowerCase();
+                const isSelected = (value === 'full' && (btnText === 'full day' || btnText === '全天')) || 
+                                   (value === 'am' && (btnText === 'am' || btnText === '上午')) || 
+                                   (value === 'pm' && (btnText === 'pm' || btnText === '下午'));
+                if (isSelected) {
+                    btn.classList.add('active');
+                    btn.style.background = 'var(--monday-blue)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--monday-blue)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = 'white';
+                    btn.style.color = 'var(--foreground)';
+                    btn.style.borderColor = 'var(--border)';
+                }
             });
             updateALDateRange();
+            validateAndShowFeedback();
         }
 
         function setALToHalfDay(value) {
             alToHalfDay = value;
             document.querySelectorAll('#alToDayOptions .half-day-btn').forEach(btn => {
-                const isSelected = (value === 'full' && btn.textContent === 'Full Day') || 
-                                   (value === 'am' && btn.textContent === 'AM') || 
-                                   (value === 'pm' && btn.textContent === 'PM');
-                btn.style.background = isSelected ? 'var(--primary)' : 'white';
-                btn.style.color = isSelected ? 'white' : 'var(--foreground)';
-                btn.style.borderColor = isSelected ? 'var(--primary)' : 'var(--border)';
+                const btnText = btn.textContent.trim().toLowerCase();
+                const isSelected = (value === 'full' && (btnText === 'full day' || btnText === '全天')) || 
+                                   (value === 'am' && (btnText === 'am' || btnText === '上午')) || 
+                                   (value === 'pm' && (btnText === 'pm' || btnText === '下午'));
+                if (isSelected) {
+                    btn.classList.add('active');
+                    btn.style.background = 'var(--monday-blue)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--monday-blue)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = 'white';
+                    btn.style.color = 'var(--foreground)';
+                    btn.style.borderColor = 'var(--border)';
+                }
             });
             updateALDateRange();
+            validateAndShowFeedback();
         }
 
         function updateALDateRange() {
@@ -2443,12 +2463,22 @@
         function updateDragSelection() {
             if (!dragStartDate || !dragEndDate) return;
             
-            const start = new Date(dragStartDate < dragEndDate ? dragStartDate : dragEndDate);
-            const end = new Date(dragStartDate < dragEndDate ? dragEndDate : dragStartDate);
+            // Parse ISO dates correctly
+            const [startY, startM, startD] = dragStartDate.split('-').map(Number);
+            const [endY, endM, endD] = dragEndDate.split('-').map(Number);
+            const start = new Date(startY, startM - 1, startD);
+            const end = new Date(endY, endM - 1, endD);
+            
+            // Ensure start <= end
+            const minDate = start <= end ? start : end;
+            const maxDate = start <= end ? end : start;
             
             document.querySelectorAll('.calendar-day').forEach(day => {
-                const date = new Date(day.getAttribute('data-date'));
-                if (date >= start && date <= end) {
+                const dateStr = day.getAttribute('data-date');
+                if (!dateStr) return;
+                const [y, m, d] = dateStr.split('-').map(Number);
+                const date = new Date(y, m - 1, d);
+                if (date >= minDate && date <= maxDate) {
                     day.classList.add('drag-selecting');
                 } else {
                     day.classList.remove('drag-selecting');
@@ -2465,8 +2495,14 @@
         }
 
         function handleDragSelection(start, end) {
-            const startDate = start < end ? start : end;
-            const endDate = start < end ? end : start;
+            // Parse and compare dates properly
+            const [startY, startM, startD] = start.split('-').map(Number);
+            const [endY, endM, endD] = end.split('-').map(Number);
+            const startDate = new Date(startY, startM - 1, startD);
+            const endDate = new Date(endY, endM - 1, endD);
+            
+            const minDate = startDate <= endDate ? start : end;
+            const maxDate = startDate <= endDate ? end : start;
             
             // Auto-fill Request Tab form
             switchTab('app');
@@ -2474,7 +2510,7 @@
             updateDateSelectionUI();
             
             // Set month
-            const [y, m] = startDate.split('-');
+            const [y, m] = minDate.split('-');
             document.getElementById('alMonth').value = `${y}-${m}`;
             generateALDateSelector();
             
@@ -2483,9 +2519,9 @@
                 const fromSelect = document.getElementById('alFromDate');
                 const toSelect = document.getElementById('alToDate');
                 if (fromSelect && toSelect) {
-                    fromSelect.value = startDate;
+                    fromSelect.value = minDate;
                     updateALFromDate();
-                    toSelect.value = endDate;
+                    toSelect.value = maxDate;
                     updateALToDate();
                 }
             }, 100);
