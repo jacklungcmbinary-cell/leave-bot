@@ -1783,21 +1783,13 @@
 
         function setALFromHalfDay(value) {
             alFromHalfDay = value;
-            document.querySelectorAll('#alFromDayOptions .half-day-btn').forEach(btn => {
-                const btnText = btn.textContent.trim().toLowerCase();
-                const isSelected = (value === 'full' && (btnText === 'full day' || btnText === '全天')) || 
-                                   (value === 'am' && (btnText === 'am' || btnText === '上午')) || 
-                                   (value === 'pm' && (btnText === 'pm' || btnText === '下午'));
+            const buttons = document.querySelectorAll('#alFromDayOptions .half-day-btn');
+            buttons.forEach((btn, index) => {
+                const isSelected = (value === 'full' && index === 0) || (value === 'am' && index === 1) || (value === 'pm' && index === 2);
                 if (isSelected) {
                     btn.classList.add('active');
-                    btn.style.background = 'var(--monday-blue)';
-                    btn.style.color = 'white';
-                    btn.style.borderColor = 'var(--monday-blue)';
                 } else {
                     btn.classList.remove('active');
-                    btn.style.background = 'white';
-                    btn.style.color = 'var(--foreground)';
-                    btn.style.borderColor = 'var(--border)';
                 }
             });
             updateALDateRange();
@@ -1806,21 +1798,13 @@
 
         function setALToHalfDay(value) {
             alToHalfDay = value;
-            document.querySelectorAll('#alToDayOptions .half-day-btn').forEach(btn => {
-                const btnText = btn.textContent.trim().toLowerCase();
-                const isSelected = (value === 'full' && (btnText === 'full day' || btnText === '全天')) || 
-                                   (value === 'am' && (btnText === 'am' || btnText === '上午')) || 
-                                   (value === 'pm' && (btnText === 'pm' || btnText === '下午'));
+            const buttons = document.querySelectorAll('#alToDayOptions .half-day-btn');
+            buttons.forEach((btn, index) => {
+                const isSelected = (value === 'full' && index === 0) || (value === 'am' && index === 1) || (value === 'pm' && index === 2);
                 if (isSelected) {
                     btn.classList.add('active');
-                    btn.style.background = 'var(--monday-blue)';
-                    btn.style.color = 'white';
-                    btn.style.borderColor = 'var(--monday-blue)';
                 } else {
                     btn.classList.remove('active');
-                    btn.style.background = 'white';
-                    btn.style.color = 'var(--foreground)';
-                    btn.style.borderColor = 'var(--border)';
                 }
             });
             updateALDateRange();
@@ -2429,27 +2413,33 @@
 
         function initializeDragAndDrop() {
             const calendarDays = document.getElementById('calendarDays');
-            const days = calendarDays.querySelectorAll('.calendar-day');
-
-            days.forEach(day => {
-                day.addEventListener('mousedown', (e) => {
-                    if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) return;
-                    
-                    isDragging = true;
-                    dragStartDate = day.getAttribute('data-date');
-                    dragEndDate = dragStartDate;
-                    updateDragSelection();
-                });
-
-                day.addEventListener('mouseenter', () => {
-                    if (isDragging) {
-                        dragEndDate = day.getAttribute('data-date');
-                        updateDragSelection();
-                    }
-                });
+            if (!calendarDays) return;
+            
+            // Use event delegation on the container
+            calendarDays.addEventListener('mousedown', (e) => {
+                const day = e.target.closest('.calendar-day');
+                if (!day) return;
+                
+                // Skip if clicking on badges
+                if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) return;
+                
+                isDragging = true;
+                dragStartDate = day.getAttribute('data-date');
+                dragEndDate = dragStartDate;
+                e.preventDefault();
             });
-
-            window.addEventListener('mouseup', () => {
+            
+            calendarDays.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const day = e.target.closest('.calendar-day');
+                if (day) {
+                    dragEndDate = day.getAttribute('data-date');
+                    updateDragSelection();
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
                 if (isDragging) {
                     isDragging = false;
                     if (dragStartDate && dragEndDate) {
