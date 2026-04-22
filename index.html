@@ -422,9 +422,14 @@
             font-size: 0.95em;
         }
 
-        .btn-secondary:hover {
+        .calendar-day:hover {
             background-color: var(--monday-background);
-            border-color: var(--monday-text-muted);
+        }
+
+        .calendar-day.drag-selecting {
+            background-color: rgba(10, 126, 164, 0.15) !important;
+            border: 2px solid var(--monday-blue) !important;
+            z-index: 1;
         }
 
         .btn-danger {
@@ -901,9 +906,9 @@
                     </div>
 
                     <form id="leaveForm">
-                        <div class="form-group">
-                            <label for="colleague" id="labelColleague">Who are you?</label>
-                            <select id="colleague" required onchange="updateAlBalanceBox()">
+                             <div class="form-group">
+                            <label id="labelColleague">Select Colleague</label>
+                            <select id="colleague" required onchange="updateAlBalanceBox(); validateAndShowFeedback();">
                                 <option value="" id="optionDefaultColleague">Select your name</option>
                                 <option value="Varina">Varina</option>
                                 <option value="Jenny">Jenny</option>
@@ -1720,6 +1725,9 @@
                 elSection.style.display = 'block';
                 initializeMonthSelector('elMonth');
             }
+            
+            // Real-time validation when type changes
+            validateAndShowFeedback();
         }
 
         function initializeMonthSelector(inputId) {
@@ -1751,6 +1759,7 @@
             document.getElementById('alFromDayOptions').innerHTML = html;
             alFromHalfDay = 'full';
             updateALDateRange();
+            validateAndShowFeedback();
         }
 
         function updateALToDate() {
@@ -1769,6 +1778,7 @@
             document.getElementById('alToDayOptions').innerHTML = html;
             alToHalfDay = 'full';
             updateALDateRange();
+            validateAndShowFeedback();
         }
 
         function setALFromHalfDay(value) {
@@ -1924,6 +1934,7 @@
             selectedELDates = Array.from(checkboxes)
                 .filter(cb => cb.checked)
                 .map(cb => cb.value);
+            validateAndShowFeedback();
         }
 
         function getTodayISO() {
@@ -2080,6 +2091,40 @@
             return { passed: allPassed, rules: allRules };
         }
 
+        function validateAndShowFeedback() {
+            const colleague = document.getElementById('colleague').value;
+            const type = document.getElementById('leaveType').value;
+            const dates = type === 'AL' ? Object.keys(selectedALDates) : selectedELDates;
+            const resultDiv = document.getElementById('validationResult');
+
+            if (!colleague || dates.length === 0) {
+                resultDiv.innerHTML = '';
+                return;
+            }
+
+            const validation = validateLeave(colleague, type, dates);
+            const t = translations[currentLanguage];
+
+            let html = `<div class="validation-result ${validation.passed ? 'passed' : 'failed'}">`;
+            html += `<strong>${validation.passed ? t.requestApproved : t.requestRejected}</strong><br>`;
+            html += '<div style="margin-top: 12px;">';
+            
+            validation.rules.forEach(rule => {
+                html += `<div class="rule-check ${rule.passed ? 'passed' : 'failed'}">
+                    ${rule.passed ? '✓' : '✗'} ${rule.rule}
+                </div>`;
+            });
+
+            html += '</div>';
+            if (validation.passed) {
+                const btnText = currentLanguage === 'zh' ? '確認提交' : 'Confirm Submit';
+                html += `<button class="btn-primary" onclick="submitLeave('${colleague}', '${type}')" style="margin-top: 12px; width: 100%;">${btnText}</button>`;
+            }
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
         function validateAndSubmit() {
             const colleague = document.getElementById('colleague').value;
             const type = document.getElementById('leaveType').value;
@@ -2104,29 +2149,7 @@
                     return;
                 }
             }
-
-            const validation = validateLeave(colleague, type, dates);
-            const resultDiv = document.getElementById('validationResult');
-            const t = translations[currentLanguage];
-
-            let html = `<div class="validation-result ${validation.passed ? 'passed' : 'failed'}">`;
-            html += `<strong>${validation.passed ? t.requestApproved : t.requestRejected}</strong><br>`;
-            html += '<div style="margin-top: 12px;">';
-            
-            validation.rules.forEach(rule => {
-                html += `<div class="rule-check ${rule.passed ? 'passed' : 'failed'}">
-                    ${rule.passed ? '✓' : '✗'} ${rule.rule}
-                </div>`;
-            });
-
-            html += '</div>';
-            if (validation.passed) {
-                const btnText = currentLanguage === 'zh' ? '確認提交' : 'Confirm Submit';
-                html += `<button class="btn-primary" onclick="submitLeave('${colleague}', '${type}')" style="margin-top: 12px; width: 100%;">${btnText}</button>`;
-            }
-            html += '</div>';
-
-            resultDiv.innerHTML = html;
+            validateAndShowFeedback();
         }
 
         function submitLeave(colleague, type) {
@@ -2378,6 +2401,94 @@
             const month = parseInt(monthSelector.value);
             currentMonth = new Date(year, month, 1);
             renderCalendar();
+        }
+
+        let isDragging = false;
+        let dragStartDate = null;
+        let dragEndDate = null;
+
+        function initializeDragAndDrop() {
+            const calendarDays = document.getElementById('calendarDays');
+            const days = calendarDays.querySelectorAll('.calendar-day');
+
+            days.forEach(day => {
+                day.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) return;
+                    
+                    isDragging = true;
+                    dragStartDate = day.getAttribute('data-date');
+                    dragEndDate = dragStartDate;
+                    updateDragSelection();
+                });
+
+                day.addEventListener('mouseenter', () => {
+                    if (isDragging) {
+                        dragEndDate = day.getAttribute('data-date');
+                        updateDragSelection();
+                    }
+                });
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    if (dragStartDate && dragEndDate) {
+                        handleDragSelection(dragStartDate, dragEndDate);
+                    }
+                    clearDragSelection();
+                }
+            });
+        }
+
+        function updateDragSelection() {
+            if (!dragStartDate || !dragEndDate) return;
+            
+            const start = new Date(dragStartDate < dragEndDate ? dragStartDate : dragEndDate);
+            const end = new Date(dragStartDate < dragEndDate ? dragEndDate : dragStartDate);
+            
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                const date = new Date(day.getAttribute('data-date'));
+                if (date >= start && date <= end) {
+                    day.classList.add('drag-selecting');
+                } else {
+                    day.classList.remove('drag-selecting');
+                }
+            });
+        }
+
+        function clearDragSelection() {
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.classList.remove('drag-selecting');
+            });
+            dragStartDate = null;
+            dragEndDate = null;
+        }
+
+        function handleDragSelection(start, end) {
+            const startDate = start < end ? start : end;
+            const endDate = start < end ? end : start;
+            
+            // Auto-fill Request Tab form
+            switchTab('app');
+            document.getElementById('leaveType').value = 'AL';
+            updateDateSelectionUI();
+            
+            // Set month
+            const [y, m] = startDate.split('-');
+            document.getElementById('alMonth').value = `${y}-${m}`;
+            generateALDateSelector();
+            
+            // Set range
+            setTimeout(() => {
+                const fromSelect = document.getElementById('alFromDate');
+                const toSelect = document.getElementById('alToDate');
+                if (fromSelect && toSelect) {
+                    fromSelect.value = startDate;
+                    updateALFromDate();
+                    toSelect.value = endDate;
+                    updateALToDate();
+                }
+            }, 100);
         }
 
         let editingEventId = null;
