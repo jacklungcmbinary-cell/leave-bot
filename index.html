@@ -1076,8 +1076,11 @@
             </div>
 
             <div class="card">
-                <h3 id="titleExport">📥 Export</h3>
-                <button class="btn-primary" id="btnExport" onclick="exportCSV()">📥 Export as CSV</button>
+                <h3 id="titleExport">📥 Export & Sync</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" id="btnExport" onclick="exportCSV()">📥 Export as CSV</button>
+                    <button class="btn-primary" id="btnSyncMonday" onclick="syncToMondayNow()" style="background-color: #00ca72; border-color: #00ca72;">🔄 Sync to Monday.com</button>
+                </div>
             </div>
         </div>
     </div>
@@ -3066,9 +3069,28 @@
             }
         }
 
+        async function syncToMondayNow() {
+            const btn = document.getElementById('btnSyncMonday');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Syncing...';
+            
+            try {
+                const response = await fetch('/api/sync-monday', { method: 'POST' });
+                const result = await response.json();
+                alert(result.message);
+            } catch (err) {
+                console.error('Sync error:', err);
+                alert('Sync failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
         function exportCSV() {
             if (leaveRecords.length === 0) {
-                alert('No leave records to export');
+                alert('No records to export');
                 return;
             }
 

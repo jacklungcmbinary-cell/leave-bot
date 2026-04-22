@@ -4,8 +4,62 @@ const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 
 const app = express();
+
+// Monday.com Configuration
+const MONDAY_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4yMDVaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.N_jtFty6oCii738vTDwXGNNs5dQXfVtXAZZpspn9sQg";
+const MONDAY_BOARD_ID = "5027993274";
+
+async function syncToMonday(record) {
+  const url = "https://api.monday.com/v2";
+  const itemName = `${record.colleague} - ${record.type}${record.halfDay ? ' (' + record.halfDay.toUpperCase() + ')' : ''}`;
+  
+  // Prepare column values
+  const columnValues = {
+    "date4": { "date": record.date },
+    "status": { "label": record.type === 'AL' ? 'Working' : 'Done' } // Mapping AL/EL to status if needed
+  };
+
+  const query = `
+    mutation ($itemName: String!, $boardId: ID!, $columnValues: JSON!) {
+      create_item (
+        board_id: $boardId,
+        item_name: $itemName,
+        column_values: $columnValues
+      ) {
+        id
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(url, {
+      query: query,
+      variables: {
+        itemName: itemName,
+        boardId: MONDAY_BOARD_ID,
+        columnValues: JSON.stringify(columnValues)
+      }
+    }, {
+      headers: {
+        'Authorization': MONDAY_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.errors) {
+      console.error('Monday API Errors:', response.data.errors);
+    } else {
+      console.log('Successfully synced to Monday:', response.data.data.create_item.id);
+      return response.data.data.create_item.id;
+    }
+  } catch (error) {
+    console.error('Error syncing to Monday:', error.message);
+  }
+  return null;
+}
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 console.log('Using HTTP - proxy will handle HTTPS');
@@ -48,6 +102,23 @@ app.get('/api/data', (req, res) => {
   res.json(data);
 });
 
+app.post('/api/sync-monday', async (req, res) => {
+  const results = [];
+  for (const record of data.leaveRecords) {
+    if (!record.mondayId) {
+      const mondayId = await syncToMonday(record);
+      if (mondayId) {
+        record.mondayId = mondayId;
+        results.push({ id: record.id, mondayId });
+      }
+    }
+  }
+  if (results.length > 0) {
+    saveData(data);
+  }
+  res.json({ message: `Synced ${results.length} items to Monday`, details: results });
+});
+
 app.post('/api/leave', (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
   
@@ -67,6 +138,14 @@ app.post('/api/leave', (req, res) => {
 
   data.leaveRecords.push(record);
   saveData(data);
+
+  // Sync to Monday.com
+  syncToMonday(record).then(mondayId => {
+    if (mondayId) {
+      record.mondayId = mondayId;
+      saveData(data);
+    }
+  });
 
   // Broadcast to all connected clients
   broadcastUpdate({
