@@ -49,6 +49,26 @@ async function syncToMonday(record, type = 'leave') {
     return null;
   }
 
+  // --- Duplicate Check Logic ---
+  try {
+    const checkQuery = `query { boards (ids: ${MONDAY_BOARD_ID}) { items_page (limit: 100) { items { id name group { id } column_values { id text } } } } }`;
+    const checkRes = await axios.post(url, { query: checkQuery }, {
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
+    });
+    const existingItems = checkRes.data.data.boards[0].items_page.items;
+    const duplicate = existingItems.find(item => {
+      const dateCol = item.column_values.find(cv => cv.id === 'date4');
+      return item.name === itemName && item.group.id === groupId && dateCol && dateCol.text === dateVal;
+    });
+    if (duplicate) {
+      console.log(`Duplicate found for ${itemName} on ${dateVal}, skipping sync. ID: ${duplicate.id}`);
+      return duplicate.id;
+    }
+  } catch (err) {
+    console.error('Error during duplicate check:', err.message);
+  }
+  // -----------------------------
+
   const columnValues = {
     "date4": { "date": dateVal }
   };
