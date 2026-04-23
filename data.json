@@ -154,6 +154,15 @@
       "date": "2026-04-22",
       "halfDay": "full",
       "createdAt": "2026-04-21T19:59:55.739Z"
+    },
+    {
+      "id": "Jenny-AL-2026-05-01-1776925834968",
+      "colleague": "Jenny",
+      "type": "AL",
+      "date": "2026-05-01",
+      "halfDay": null,
+      "createdAt": "2026-04-23T06:30:34.968Z",
+      "mondayId": "2674869034"
     }
   ],
   "events": [

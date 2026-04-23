@@ -2290,6 +2290,26 @@
 
 
 
+        async function syncHolidayToMonday(date, name) {
+            if (!confirm(currentLanguage === 'zh' ? `同步公眾假期「${name}」到 Monday.com？` : `Sync public holiday "${name}" to Monday.com?`)) return;
+            try {
+                const response = await fetch('/api/sync-holiday', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, name })
+                });
+                const result = await response.json();
+                if (result.mondayId) {
+                    alert(currentLanguage === 'zh' ? '同步成功！' : 'Sync successful!');
+                } else {
+                    alert(currentLanguage === 'zh' ? '同步失敗' : 'Sync failed');
+                }
+            } catch (err) {
+                console.error('Holiday sync error:', err);
+                alert('Error: ' + err.message);
+            }
+        }
+
         function renderCalendar() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
@@ -2328,7 +2348,7 @@
                 html += '<div class="calendar-day-leaves">';
                 
                 if (isHoliday) {
-                    html += `<div class="holiday-badge">${isHoliday}</div>`;
+                    html += `<div class="holiday-badge" onclick="syncHolidayToMonday('${dateISO}', '${isHoliday}')">${isHoliday}</div>`;
                 }
                 
                 dayLeaves.forEach(leave => {
@@ -3076,7 +3096,7 @@
             btn.innerHTML = '⏳ Syncing...';
             
             try {
-                const response = await fetch('/api/sync-monday', { method: 'POST' });
+                const response = await fetch('/api/sync-monday-all', { method: 'POST' });
                 const result = await response.json();
                 alert(result.message);
             } catch (err) {
