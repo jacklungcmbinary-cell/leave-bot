@@ -229,7 +229,7 @@ app.post('/api/sync-monday-all', async (req, res) => {
 app.post('/api/leave', (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
   if (!colleague || !type || !date) return res.status(400).json({ error: 'Missing fields' });
-  const record = { id: \`\${colleague}-\${type}-\${date}-\${Date.now()}\`, colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
+  const record = { id: `${colleague}-${type}-${date}-${Date.now()}`, colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
   data.leaveRecords.push(record);
   saveData(data);
   syncToMonday(record, 'leave').then(mondayId => { if (mondayId) { record.mondayId = mondayId; saveData(data); } });
@@ -265,7 +265,7 @@ app.get('/api/event', (req, res) => res.json(data.events || []));
 app.post('/api/event', (req, res) => {
   const { date, name } = req.body;
   if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
-  const event = { id: \`event-\${Date.now()}\`, date, name };
+  const event = { id: `event-${Date.now()}`, date, name };
   if (!data.events) data.events = [];
   data.events.push(event);
   saveData(data);
