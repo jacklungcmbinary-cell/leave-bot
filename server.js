@@ -5,14 +5,16 @@ const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const { exec } = require('child_process');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 
-// Monday.com Configuration
+// --- Configuration ---
 const MONDAY_API_KEY = process.env.MONDAY_API_KEY || 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.tmxNC_r13mrtzrQ4mI6lDdMCtgdlphejzM1p_-rhGVI';
 const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID || '5027993274';
+const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot_db?retryWrites=true&w=majority";
 
-// Monday.com Group Mapping
 const GROUP_MAPPING = {
   'Jenny': 'group_mkya843p',
   'Holly': 'new_group__1',
@@ -24,11 +26,67 @@ const GROUP_MAPPING = {
   'Event': 'group_mm2nrf5g'
 };
 
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+// --- Database Connection ---
+let db, leaveCollection, eventCollection;
+const client = new MongoClient(MONGO_URI);
+
+async function connectDB() {
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB Atlas");
+    db = client.db("leave_bot_db");
+    leaveCollection = db.collection("leaveRecords");
+    eventCollection = db.collection("events");
+    
+    // Initial data load from MongoDB
+    await refreshLocalData();
+  } catch (err) {
+    console.error("MongoDB Connection Error:", err.message);
+    // Fallback to local data if MongoDB fails
+    data = loadLocalData();
+  }
+}
+
+// --- Data Management ---
+let data = { leaveRecords: [], events: [] };
+
+function loadLocalData() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    }
+  } catch (err) { console.error('Error loading local data:', err); }
+  return { leaveRecords: [], events: [] };
+}
+
+async function refreshLocalData() {
+  try {
+    const leaves = await leaveCollection.find({}).toArray();
+    const events = await eventCollection.find({}).toArray();
+    data = { leaveRecords: leaves, events: events };
+    
+    // Backup to local file
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    console.log(`Data refreshed from MongoDB: ${leaves.length} leaves, ${events.length} events`);
+  } catch (err) {
+    console.error("Error refreshing data from MongoDB:", err);
+  }
+}
+
+function backupToGit() {
+  const commitMsg = `data: auto-sync at ${new Date().toISOString()}`;
+  exec(`git add data.json && git commit -m "${commitMsg}" && git push origin main`, (error, stdout, stderr) => {
+    if (error) console.error(`Git push error: ${error.message}`);
+    else console.log(`Git push success: ${stdout}`);
+  });
+}
+
+// --- Monday.com Integration ---
 async function syncToMonday(record, type = 'leave') {
   const url = "https://api.monday.com/v2";
-  let itemName = '';
-  let groupId = '';
-  let dateVal = '';
+  let itemName = '', groupId = '', dateVal = '';
 
   if (type === 'leave') {
     itemName = `${record.colleague} - ${record.type}${record.halfDay ? ' (' + record.halfDay.toUpperCase() + ')' : ''}`;
@@ -38,293 +96,95 @@ async function syncToMonday(record, type = 'leave') {
     itemName = record.name;
     groupId = GROUP_MAPPING['Event'];
     dateVal = record.date;
-  } else if (type === 'holiday') {
-    itemName = record.name;
-    groupId = GROUP_MAPPING['Holiday'];
-    dateVal = record.date;
   }
 
-  if (!groupId) {
-    console.error(`Group ID not found for ${type}: ${record.colleague || 'Holiday/Event'}`);
-    return null;
-  }
-
-  // --- Duplicate Check Logic ---
-  try {
-    const checkQuery = `query { boards (ids: ${MONDAY_BOARD_ID}) { items_page (limit: 100) { items { id name group { id } column_values { id text } } } } }`;
-    const checkRes = await axios.post(url, { query: checkQuery }, {
-      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
-    });
-    const existingItems = checkRes.data.data.boards[0].items_page.items;
-    const duplicate = existingItems.find(item => {
-      const dateCol = item.column_values.find(cv => cv.id === 'date4');
-      return item.name === itemName && item.group.id === groupId && dateCol && dateCol.text === dateVal;
-    });
-    if (duplicate) {
-      console.log(`Duplicate found for ${itemName} on ${dateVal}, skipping sync. ID: ${duplicate.id}`);
-      return duplicate.id;
-    }
-  } catch (err) {
-    console.error('Error during duplicate check:', err.message);
-  }
-  // -----------------------------
-
-  const columnValues = {
-    "date4": { "date": dateVal }
-  };
+  if (!groupId) return null;
 
   const query = `
     mutation ($itemName: String!, $boardId: ID!, $groupId: String!, $columnValues: JSON!) {
-      create_item (
-        board_id: $boardId,
-        group_id: $groupId,
-        item_name: $itemName,
-        column_values: $columnValues
-      ) {
-        id
-      }
+      create_item (board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columnValues) { id }
     }
   `;
 
   try {
     const response = await axios.post(url, {
-      query: query,
-      variables: {
-        itemName: itemName,
-        boardId: MONDAY_BOARD_ID,
-        groupId: groupId,
-        columnValues: JSON.stringify(columnValues)
-      }
+      query,
+      variables: { itemName, boardId: MONDAY_BOARD_ID, groupId, columnValues: JSON.stringify({ "date4": { "date": dateVal } }) }
     }, {
-      headers: {
-        'Authorization': MONDAY_API_KEY,
-        'Content-Type': 'application/json',
-        'API-Version': '2023-10'
-      }
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
     });
-
-    if (response.data.errors) {
-      console.error('Monday API Errors:', response.data.errors);
-    } else {
-      console.log(`Successfully synced ${type} to Monday:`, response.data.data.create_item.id);
-      return response.data.data.create_item.id;
-    }
+    return response.data.data?.create_item?.id || null;
   } catch (error) {
-    console.error(`Error syncing ${type} to Monday:`, error.message);
+    console.error(`Error syncing to Monday:`, error.message);
+    return null;
   }
-  return null;
-}
-
-async function updateMondayItem(record, type = 'leave') {
-  if (!record.mondayId) return null;
-
-  const url = "https://api.monday.com/v2";
-  let itemName = '';
-  let dateVal = '';
-
-  if (type === 'leave') {
-    itemName = `${record.colleague} - ${record.type}${record.halfDay ? ' (' + record.halfDay.toUpperCase() + ')' : ''}`;
-    dateVal = record.date;
-  } else if (type === 'event') {
-    itemName = record.name;
-    dateVal = record.date;
-  }
-
-  const columnValues = {
-    "date4": { "date": dateVal }
-  };
-
-  const query = `
-    mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
-      change_multiple_column_values (
-        item_id: $itemId,
-        board_id: $boardId,
-        column_values: $columnValues
-      ) {
-        id
-      }
-    }
-  `;
-
-  try {
-    const response = await axios.post(url, {
-      query: query,
-      variables: {
-        itemId: record.mondayId,
-        boardId: MONDAY_BOARD_ID,
-        columnValues: JSON.stringify(columnValues)
-      }
-    }, {
-      headers: {
-        'Authorization': MONDAY_API_KEY,
-        'Content-Type': 'application/json',
-        'API-Version': '2023-10'
-      }
-    });
-
-    if (response.data.errors) {
-      console.error('Monday API Errors (update):', response.data.errors);
-    } else {
-      console.log('Successfully updated Monday item:', record.mondayId);
-      return record.mondayId;
-    }
-  } catch (error) {
-    console.error('Error updating Monday item:', error.message);
-  }
-  return null;
 }
 
 async function deleteMondayItem(mondayId) {
-  if (!mondayId) return false;
+  if (!mondayId) return;
   const url = "https://api.monday.com/v2";
   const query = `mutation ($itemId: ID!) { delete_item (item_id: $itemId) { id } }`;
   try {
-    const response = await axios.post(url, { 
-      query, 
-      variables: { itemId: mondayId } 
-    }, {
-      headers: { 
-        'Authorization': MONDAY_API_KEY, 
-        'Content-Type': 'application/json',
-        'API-Version': '2023-10'
-      }
+    await axios.post(url, { query, variables: { itemId: mondayId } }, {
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
     });
-    if (response.data.errors) {
-        console.error('Monday API Errors (delete):', response.data.errors);
-        return false;
-    }
-    console.log('Successfully deleted Monday item:', mondayId);
-    return true;
-  } catch (error) {
-    console.error('Error deleting Monday item:', error.message);
-    return false;
-  }
+  } catch (err) { console.error('Error deleting from Monday:', err.message); }
 }
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-const DATA_FILE = path.join(__dirname, 'data.json');
-
-function loadData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    }
-  } catch (err) { console.error('Error loading data:', err); }
-  return { leaveRecords: [], events: [] };
-}
-
-function saveData(data) {
-  try { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
-  catch (err) { console.error('Error saving data:', err); }
-}
-
-let data = loadData();
-
+// --- Express App ---
 app.use(express.static(path.join(__dirname)));
 app.use(express.json());
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/api/data', (req, res) => res.json(data));
 
-app.post('/api/sync-monday-all', async (req, res) => {
-  const results = { leaves: [], events: [] };
-  for (const record of data.leaveRecords) {
-    if (!record.mondayId) {
-      const mId = await syncToMonday(record, 'leave');
-      if (mId) { record.mondayId = mId; results.leaves.push(record.id); }
-    }
-  }
-  for (const event of (data.events || [])) {
-    if (!event.mondayId) {
-      const mId = await syncToMonday(event, 'event');
-      if (mId) { event.mondayId = mId; results.events.push(event.id); }
-    }
-  }
-  saveData(data);
-  res.json({ message: `Synced ${results.leaves.length} leaves and ${results.events.length} events`, details: results });
-});
-
-app.post('/api/leave', (req, res) => {
+app.post('/api/leave', async (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
-  if (!colleague || !type || !date) return res.status(400).json({ error: 'Missing fields' });
-  const record = { id: `${colleague}-${type}-${date}-${Date.now()}`, colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
-  data.leaveRecords.push(record);
-  saveData(data);
-  syncToMonday(record, 'leave').then(mondayId => { if (mondayId) { record.mondayId = mondayId; saveData(data); } });
+  const record = { 
+    id: `${colleague}-${type}-${date}-${Date.now()}`, 
+    colleague, type, date, 
+    halfDay: halfDay || null, 
+    createdAt: new Date().toISOString() 
+  };
+  
+  // 1. Save to MongoDB
+  await leaveCollection.insertOne(record);
+  
+  // 2. Sync to Monday
+  const mondayId = await syncToMonday(record, 'leave');
+  if (mondayId) {
+    record.mondayId = mondayId;
+    await leaveCollection.updateOne({ id: record.id }, { $set: { mondayId } });
+  }
+  
+  // 3. Refresh local and broadcast
+  await refreshLocalData();
+  backupToGit();
   broadcastUpdate({ type: 'add', record });
   res.json(record);
 });
 
-app.put('/api/leave/:id', async (req, res) => {
-  const { id } = req.params;
-  const { colleague, type, date, halfDay } = req.body;
-  const index = data.leaveRecords.findIndex(r => r.id === id);
-  if (index === -1) return res.status(404).json({ error: 'Not found' });
-  const record = data.leaveRecords[index];
-  Object.assign(record, { colleague, type, date, halfDay: halfDay || null });
-  saveData(data);
-  if (record.mondayId) await updateMondayItem(record, 'leave');
-  broadcastUpdate({ type: 'update', record });
+app.delete('/api/leave/:id', async (req, res) => {
+  const record = await leaveCollection.findOne({ id: req.params.id });
+  if (!record) return res.status(404).json({ error: 'Not found' });
+  
+  // 1. Delete from MongoDB
+  await leaveCollection.deleteOne({ id: req.params.id });
+  
+  // 2. Delete from Monday
+  if (record.mondayId) await deleteMondayItem(record.mondayId);
+  
+  // 3. Refresh and broadcast
+  await refreshLocalData();
+  backupToGit();
+  broadcastUpdate({ type: 'remove', id: req.params.id });
   res.json(record);
 });
 
-app.delete('/api/leave/:id', async (req, res) => {
-  const index = data.leaveRecords.findIndex(r => r.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Not found' });
-  const removed = data.leaveRecords.splice(index, 1)[0];
-  saveData(data);
-  if (removed.mondayId) await deleteMondayItem(removed.mondayId);
-  broadcastUpdate({ type: 'remove', id: req.params.id });
-  res.json(removed);
-});
-
-app.get('/api/event', (req, res) => res.json(data.events || []));
-
-app.post('/api/event', (req, res) => {
-  const { date, name } = req.body;
-  if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
-  const event = { id: `event-${Date.now()}`, date, name };
-  if (!data.events) data.events = [];
-  data.events.push(event);
-  saveData(data);
-  syncToMonday(event, 'event').then(mondayId => { if (mondayId) { event.mondayId = mondayId; saveData(data); } });
-  broadcastUpdate({ type: 'addEvent', event });
-  res.json(event);
-});
-
-app.put('/api/event/:id', async (req, res) => {
-  const event = (data.events || []).find(e => e.id === req.params.id);
-  if (!event) return res.status(404).json({ error: 'Not found' });
-  Object.assign(event, req.body);
-  saveData(data);
-  if (event.mondayId) await updateMondayItem(event, 'event');
-  broadcastUpdate({ type: 'updateEvent', event });
-  res.json(event);
-});
-
-app.delete('/api/event/:id', async (req, res) => {
-  const index = (data.events || []).findIndex(e => e.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Not found' });
-  const removed = data.events.splice(index, 1)[0];
-  saveData(data);
-  if (removed.mondayId) await deleteMondayItem(removed.mondayId);
-  broadcastUpdate({ type: 'removeEvent', id: req.params.id });
-  res.json(removed);
-});
-
-app.post('/api/sync-holiday', async (req, res) => {
-  const { date, name } = req.body;
-  if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
-  const holidayRecord = { date, name };
-  const mondayId = await syncToMonday(holidayRecord, 'holiday');
-  if (mondayId) {
-    res.json({ success: true, mondayId });
-  } else {
-    res.status(500).json({ error: 'Failed to sync holiday' });
-  }
-});
+// --- WebSocket ---
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const clients = new Set();
 
 wss.on('connection', (ws) => {
   clients.add(ws);
@@ -332,10 +192,12 @@ wss.on('connection', (ws) => {
   ws.on('close', () => clients.delete(ws));
 });
 
-const clients = new Set();
 function broadcastUpdate(update) {
   const msg = JSON.stringify(update);
   clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(msg); });
 }
 
-server.listen(3000, () => console.log('Server running on port 3000'));
+// --- Start Server ---
+connectDB().then(() => {
+  server.listen(3000, () => console.log('Server running on port 3000 with MongoDB'));
+});
