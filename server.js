@@ -44,6 +44,11 @@ async function syncToMonday(record, type = 'leave') {
     dateVal = record.date;
   }
 
+  if (!groupId) {
+    console.error(`Group ID not found for ${type}: ${record.colleague || 'Holiday/Event'}`);
+    return null;
+  }
+
   const columnValues = {
     "date4": { "date": dateVal }
   };
@@ -73,7 +78,8 @@ async function syncToMonday(record, type = 'leave') {
     }, {
       headers: {
         'Authorization': MONDAY_API_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Version': '2023-10'
       }
     });
 
@@ -131,7 +137,8 @@ async function updateMondayItem(record, type = 'leave') {
     }, {
       headers: {
         'Authorization': MONDAY_API_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Version': '2023-10'
       }
     });
 
@@ -152,10 +159,22 @@ async function deleteMondayItem(mondayId) {
   const url = "https://api.monday.com/v2";
   const query = `mutation ($itemId: ID!) { delete_item (item_id: $itemId) { id } }`;
   try {
-    const response = await axios.post(url, { query, variables: { itemId: mondayId } }, {
-      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json' }
+    const response = await axios.post(url, { 
+      query, 
+      variables: { itemId: mondayId } 
+    }, {
+      headers: { 
+        'Authorization': MONDAY_API_KEY, 
+        'Content-Type': 'application/json',
+        'API-Version': '2023-10'
+      }
     });
-    return !response.data.errors;
+    if (response.data.errors) {
+        console.error('Monday API Errors (delete):', response.data.errors);
+        return false;
+    }
+    console.log('Successfully deleted Monday item:', mondayId);
+    return true;
   } catch (error) {
     console.error('Error deleting Monday item:', error.message);
     return false;
@@ -191,23 +210,18 @@ app.get('/api/data', (req, res) => res.json(data));
 
 app.post('/api/sync-monday-all', async (req, res) => {
   const results = { leaves: [], events: [] };
-  
-  // Sync leaves
   for (const record of data.leaveRecords) {
     if (!record.mondayId) {
       const mId = await syncToMonday(record, 'leave');
       if (mId) { record.mondayId = mId; results.leaves.push(record.id); }
     }
   }
-  
-  // Sync events
   for (const event of (data.events || [])) {
     if (!event.mondayId) {
       const mId = await syncToMonday(event, 'event');
       if (mId) { event.mondayId = mId; results.events.push(event.id); }
     }
   }
-  
   saveData(data);
   res.json({ message: `Synced ${results.leaves.length} leaves and ${results.events.length} events`, details: results });
 });
@@ -215,7 +229,7 @@ app.post('/api/sync-monday-all', async (req, res) => {
 app.post('/api/leave', (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
   if (!colleague || !type || !date) return res.status(400).json({ error: 'Missing fields' });
-  const record = { id: `${colleague}-${type}-${date}-${Date.now()}`, colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
+  const record = { id: \`\${colleague}-\${type}-\${date}-\${Date.now()}\`, colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
   data.leaveRecords.push(record);
   saveData(data);
   syncToMonday(record, 'leave').then(mondayId => { if (mondayId) { record.mondayId = mondayId; saveData(data); } });
@@ -251,28 +265,13 @@ app.get('/api/event', (req, res) => res.json(data.events || []));
 app.post('/api/event', (req, res) => {
   const { date, name } = req.body;
   if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
-  const event = { id: `event-${Date.now()}`, date, name };
+  const event = { id: \`event-\${Date.now()}\`, date, name };
   if (!data.events) data.events = [];
   data.events.push(event);
   saveData(data);
   syncToMonday(event, 'event').then(mondayId => { if (mondayId) { event.mondayId = mondayId; saveData(data); } });
   broadcastUpdate({ type: 'addEvent', event });
   res.json(event);
-});
-
-app.post('/api/sync-holiday', async (req, res) => {
-  const { date, name } = req.body;
-  if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
-  
-  // Create a pseudo-record for holiday
-  const holidayRecord = { date, name };
-  const mondayId = await syncToMonday(holidayRecord, 'holiday');
-  
-  if (mondayId) {
-    res.json({ success: true, mondayId });
-  } else {
-    res.status(500).json({ error: 'Failed to sync holiday' });
-  }
 });
 
 app.put('/api/event/:id', async (req, res) => {
@@ -293,6 +292,18 @@ app.delete('/api/event/:id', async (req, res) => {
   if (removed.mondayId) await deleteMondayItem(removed.mondayId);
   broadcastUpdate({ type: 'removeEvent', id: req.params.id });
   res.json(removed);
+});
+
+app.post('/api/sync-holiday', async (req, res) => {
+  const { date, name } = req.body;
+  if (!date || !name) return res.status(400).json({ error: 'Missing fields' });
+  const holidayRecord = { date, name };
+  const mondayId = await syncToMonday(holidayRecord, 'holiday');
+  if (mondayId) {
+    res.json({ success: true, mondayId });
+  } else {
+    res.status(500).json({ error: 'Failed to sync holiday' });
+  }
 });
 
 wss.on('connection', (ws) => {
