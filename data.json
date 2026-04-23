@@ -278,6 +278,15 @@
       "halfDay": "full",
       "createdAt": "2026-04-23T08:47:09.513Z",
       "mondayId": "2674989600"
+    },
+    {
+      "id": "Jenny-AL-2026-04-11-1776934569430-blix9",
+      "colleague": "Jenny",
+      "type": "AL",
+      "date": "2026-04-11",
+      "halfDay": "full",
+      "createdAt": "2026-04-23T08:56:09.430Z",
+      "mondayId": "2675044784"
     }
   ],
   "events": [
