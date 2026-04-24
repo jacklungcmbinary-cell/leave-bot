@@ -167,8 +167,8 @@ cron.schedule('0 10 * * *', async () => {
   if (todaysLeaves.length > 0) {
     let msg = `📢 *今日團隊出勤狀況 (${today})*\n`;
     todaysLeaves.forEach(r => {
-      const timeSlot = r.halfDay ? r.halfDay.toUpperCase() : 'FULL';
-      msg += `• *${r.colleague}*: ${r.type} (${timeSlot})\n`;
+      const timeSlot = r.halfDay ? ` (${r.halfDay.toUpperCase()})` : (r.type === 'EL' ? '' : ' (FULL)');
+      msg += `• *${r.colleague}*: ${r.type}${timeSlot}\n`;
     });
     msg += `\n_請大家留意相關工作交接，祝工作順利！_`;
     await sendSlackMessage(msg);
@@ -187,8 +187,8 @@ cron.schedule('0 15 * * *', async () => {
   if (tomorrowsLeaves.length > 0) {
     let msg = `📅 *明日請假預告 (${tomorrow})*\n`;
     tomorrowsLeaves.forEach(r => {
-      const timeSlot = r.halfDay ? r.halfDay.toUpperCase() : 'FULL';
-      msg += `• *${r.colleague}*: ${r.type} (${timeSlot})\n`;
+      const timeSlot = r.halfDay ? ` (${r.halfDay.toUpperCase()})` : (r.type === 'EL' ? '' : ' (FULL)');
+      msg += `• *${r.colleague}*: ${r.type}${timeSlot}\n`;
     });
     msg += `\n_提醒大家提前處理明日的交接事項，謝謝！_`;
     await sendSlackMessage(msg);
