@@ -189,6 +189,42 @@ const clients = new Set();
 wss.on('connection', (ws) => {
   clients.add(ws);
   ws.send(JSON.stringify({ type: 'init', data }));
+  
+  ws.on('message', async (message) => {
+    try {
+      const msg = JSON.parse(message);
+      if (msg.type === 'moveLeave') {
+        const { leaveId, newDate } = msg;
+        const record = await leaveCollection.findOne({ id: leaveId });
+        if (record) {
+          // 1. Update in MongoDB
+          await leaveCollection.updateOne({ id: leaveId }, { $set: { date: newDate } });
+          
+          // 2. Update Monday.com if mondayId exists
+          if (record.mondayId) {
+            const url = "https://api.monday.com/v2";
+            const query = `mutation ($itemId: ID!, $columnValues: JSON!) { change_column_value (board_id: ${MONDAY_BOARD_ID}, item_id: $itemId, column_id: "date4", value: $columnValues) { id } }`;
+            await axios.post(url, {
+              query,
+              variables: { 
+                itemId: record.mondayId, 
+                columnValues: JSON.stringify({ "date": newDate }) 
+              }
+            }, {
+              headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
+            });
+          }
+          
+          // 3. Refresh and broadcast
+          await refreshLocalData();
+          broadcastUpdate({ type: 'update', record: { ...record, date: newDate } });
+        }
+      }
+    } catch (err) {
+      console.error('WebSocket message error:', err);
+    }
+  });
+
   ws.on('close', () => clients.delete(ws));
 });
 
