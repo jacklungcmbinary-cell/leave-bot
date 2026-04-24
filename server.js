@@ -66,7 +66,6 @@ async function refreshLocalData() {
     const events = await eventCollection.find({}).toArray();
     const balancesArr = await balanceCollection.find({}).toArray();
     
-    // Standardize data for frontend: ensure 'id' exists and matches 'mondayId' or '_id'
     const formattedLeaves = leaves.map(l => ({ ...l, id: l.id || l.mondayId || l._id.toString() }));
     const formattedEvents = events.map(e => ({ ...e, id: e.id || e.mondayId || e._id.toString() }));
     
@@ -88,7 +87,8 @@ async function forceSyncFromMonday() {
   
   try {
     const response = await axios.post(url, { query }, {
-      headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' }
+      headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' },
+      timeout: 10000
     });
     
     if (!response.data.data || !response.data.data.boards[0]) return;
@@ -123,7 +123,6 @@ async function forceSyncFromMonday() {
         );
       }
     }
-    // Cleanup records that no longer exist on Monday
     await leaveCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
     await eventCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
     console.log("Force sync completed.");
@@ -163,7 +162,8 @@ async function syncToMonday(record, type = 'leave') {
       query,
       variables: { itemName, boardId: MONDAY_BOARD_ID, groupId, columnValues: JSON.stringify({ "date4": { "date": dateVal } }) }
     }, {
-      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' },
+      timeout: 10000
     });
     return response.data.data?.create_item?.id || null;
   } catch (error) {
@@ -178,7 +178,8 @@ async function deleteMondayItem(mondayId) {
   const query = `mutation ($itemId: ID!) { delete_item (item_id: $itemId) { id } }`;
   try {
     await axios.post(url, { query, variables: { itemId: mondayId } }, {
-      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' },
+      timeout: 10000
     });
   } catch (err) { console.error('Error deleting from Monday:', err.message); }
 }
@@ -219,70 +220,92 @@ app.post('/api/monday-webhook', async (req, res) => {
 });
 
 app.post('/api/leave', async (req, res) => {
-  const { colleague, type, date, halfDay } = req.body;
-  const record = { colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
-  const mondayId = await syncToMonday(record, 'leave');
-  if (mondayId) {
-    record.mondayId = mondayId;
-    record.id = mondayId;
-    await leaveCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
-  } else {
-    const result = await leaveCollection.insertOne(record);
-    record.id = result.insertedId.toString();
-  }
-  await refreshLocalData();
-  backupToGit();
-  broadcastUpdate({ type: 'init', data });
-  res.json(record);
-});
-
-app.delete('/api/leave/:id', async (req, res) => {
-  const id = req.params.id;
-  const record = await leaveCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
-  if (record) {
-    await leaveCollection.deleteOne({ _id: record._id });
-    if (record.mondayId) await deleteMondayItem(record.mondayId);
+  try {
+    const { colleague, type, date, halfDay } = req.body;
+    const record = { colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
+    const mondayId = await syncToMonday(record, 'leave');
+    if (mondayId) {
+      record.mondayId = mondayId;
+      record.id = mondayId;
+      await leaveCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
+    } else {
+      const result = await leaveCollection.insertOne(record);
+      record.id = result.insertedId.toString();
+    }
     await refreshLocalData();
     backupToGit();
     broadcastUpdate({ type: 'init', data });
+    res.json(record);
+  } catch (err) {
+    console.error('Error in POST /api/leave:', err.message);
+    res.status(500).json({ error: err.message });
   }
-  res.json({ success: true });
+});
+
+app.delete('/api/leave/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const record = await leaveCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
+    if (record) {
+      await leaveCollection.deleteOne({ _id: record._id });
+      if (record.mondayId) await deleteMondayItem(record.mondayId);
+      await refreshLocalData();
+      backupToGit();
+      broadcastUpdate({ type: 'init', data });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in DELETE /api/leave:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/event', async (req, res) => {
-  const { name, date } = req.body;
-  const record = { name, date };
-  const mondayId = await syncToMonday(record, 'event');
-  if (mondayId) {
-    record.mondayId = mondayId;
-    record.id = mondayId;
-    await eventCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
-  } else {
-    const result = await eventCollection.insertOne(record);
-    record.id = result.insertedId.toString();
+  try {
+    const { name, date } = req.body;
+    const record = { name, date };
+    const mondayId = await syncToMonday(record, 'event');
+    if (mondayId) {
+      record.mondayId = mondayId;
+      record.id = mondayId;
+      await eventCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
+    } else {
+      const result = await eventCollection.insertOne(record);
+      record.id = result.insertedId.toString();
+    }
+    await refreshLocalData();
+    broadcastUpdate({ type: 'init', data });
+    res.json(record);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  await refreshLocalData();
-  broadcastUpdate({ type: 'init', data });
-  res.json(record);
 });
 
 app.delete('/api/event/:id', async (req, res) => {
-  const id = req.params.id;
-  const record = await eventCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
-  if (record) {
-    await eventCollection.deleteOne({ _id: record._id });
-    if (record.mondayId) await deleteMondayItem(record.mondayId);
-    await refreshLocalData();
-    broadcastUpdate({ type: 'init', data });
+  try {
+    const id = req.params.id;
+    const record = await eventCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
+    if (record) {
+      await eventCollection.deleteOne({ _id: record._id });
+      if (record.mondayId) await deleteMondayItem(record.mondayId);
+      await refreshLocalData();
+      broadcastUpdate({ type: 'init', data });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json({ success: true });
 });
 
 app.post('/api/sync-monday-all', async (req, res) => {
-  await forceSyncFromMonday();
-  await refreshLocalData();
-  broadcastUpdate({ type: 'init', data });
-  res.json({ success: true });
+  try {
+    await forceSyncFromMonday();
+    await refreshLocalData();
+    broadcastUpdate({ type: 'init', data });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // --- WebSocket ---
