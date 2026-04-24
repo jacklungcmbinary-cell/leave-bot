@@ -348,44 +348,41 @@
             font-size: 0.85em;
             font-weight: 500;
             color: var(--muted);
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
         .half-day-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+            background: #f5f6f8;
+            border-color: var(--monday-blue);
         }
 
         .half-day-btn.active {
-            background-color: var(--primary);
-            border-color: var(--primary);
+            background: var(--monday-blue);
             color: white;
+            border-color: var(--monday-blue);
         }
 
         .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
             gap: 8px;
         }
 
         .btn-primary {
-            background-color: var(--primary);
+            background-color: var(--monday-blue);
             color: white;
         }
 
         .btn-primary:hover {
             background-color: var(--monday-dark-blue);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 115, 234, 0.2);
         }
 
         .btn-outline {
@@ -396,7 +393,7 @@
 
         .btn-outline:hover {
             background-color: var(--background);
-            border-color: var(--muted);
+            border-color: var(--primary);
         }
 
         .btn-danger {
@@ -405,7 +402,7 @@
         }
 
         .btn-danger:hover {
-            background-color: #c6374a;
+            background-color: #c0392b;
         }
 
         /* Calendar Styles */
@@ -416,154 +413,107 @@
             margin-bottom: 24px;
         }
 
-        .calendar-title {
-            font-size: 1.5em;
-            font-weight: 800;
-            color: var(--foreground);
-        }
-
-        .calendar-nav {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nav-btn {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover {
-            background: var(--background);
-            border-color: var(--muted);
-        }
-
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background-color: var(--border);
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
+            background: white;
         }
 
-        .calendar-day-name {
-            background-color: #f8f9fb;
+        .calendar-day-head {
             padding: 12px;
             text-align: center;
-            font-size: 0.8em;
             font-weight: 700;
+            font-size: 0.85em;
             color: var(--muted);
+            background: #f8f9fb;
+            border-bottom: 1px solid var(--border);
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .calendar-day {
-            background-color: white;
             min-height: 120px;
             padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            transition: background-color 0.2s ease;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            position: relative;
         }
 
-        .calendar-day:hover {
-            background-color: #fcfcfc;
+        .calendar-day:nth-child(7n) {
+            border-right: none;
         }
 
-        .calendar-day.other-month {
-            background-color: #fcfcfc;
-            color: #d0d4e4;
-        }
-
-        .calendar-day.holiday {
-            background-color: #fff9f0;
-        }
-
-        .calendar-day.event {
+        .calendar-day.today {
             background-color: #f0f7ff;
         }
 
-        .calendar-day-number {
-            font-size: 0.9em;
-            font-weight: 600;
-            margin-bottom: 4px;
+        .calendar-day.today::after {
+            content: 'TODAY';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.65em;
+            font-weight: 800;
+            color: var(--monday-blue);
+            background: rgba(0, 115, 234, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
-        .calendar-day-leaves {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
+        .calendar-day.other-month {
+            background-color: #fafbfc;
+            color: #d1d5db;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 8px;
         }
 
         .leave-badge {
+            font-size: 0.75em;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.75em;
+            margin-bottom: 4px;
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .leave-badge.al { border-left: 3px solid var(--monday-blue); }
-        .leave-badge.el { border-left: 3px solid var(--monday-orange); }
-        .leave-badge.birthday-leave { border-left: 3px solid var(--monday-purple); }
-        .leave-badge.exam-leave { border-left: 3px solid #00d2d3; }
-
-        .holiday-badge {
-            background-color: #fdab3d;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7em;
-            font-weight: 700;
-            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
+            transition: transform 0.1s;
         }
 
-        .event-badge {
-            background-color: #0073ea;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7em;
-            font-weight: 700;
-            margin-bottom: 4px;
+        .leave-badge:hover {
+            transform: scale(1.02);
+            filter: brightness(0.95);
         }
+
+        .badge-al { background-color: #cce5ff; color: #004085; border-left: 3px solid var(--monday-blue); }
+        .badge-el { background-color: #fff3cd; color: #856404; border-left: 3px solid var(--monday-orange); }
+        .badge-event { background-color: #f3e5f5; color: #4a148c; border-left: 3px solid var(--monday-purple); }
 
         /* Modal Styles */
         .modal {
+            display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
             backdrop-filter: blur(4px);
-        }
-
-        .modal.active {
-            display: flex;
         }
 
         .modal-content {
             background-color: white;
+            margin: 10% auto;
             padding: 32px;
             border-radius: 12px;
-            width: 100%;
+            width: 90%;
             max-width: 500px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
@@ -575,51 +525,73 @@
             margin-bottom: 24px;
         }
 
-        .modal-header h2 {
-            font-size: 1.4em;
-            font-weight: 800;
-        }
-
         .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5em;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
             color: var(--muted);
+            background: none;
+            border: none;
         }
 
-        /* Colleague Cards */
+        .close-modal:hover { color: var(--foreground); }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f8f9fb;
+            font-weight: 700;
+            font-size: 0.85em;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        tr:hover { background-color: #fcfcfc; }
+
+        /* Team Summary Cards */
+        .team-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
         .colleague-card {
-            display: flex;
-            align-items: center;
-            padding: 12px;
+            background: white;
             border: 1px solid var(--border);
             border-radius: 8px;
-            margin-bottom: 12px;
-            transition: all 0.2s ease;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .colleague-card:hover {
-            background-color: #f8f9fb;
-            border-color: var(--primary);
-        }
-
-        .colleague-avatar {
+        .avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: var(--primary);
+            background-color: var(--monday-blue);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            margin-right: 12px;
+            font-size: 1.1em;
         }
 
         .colleague-info h4 {
             font-size: 0.95em;
-            font-weight: 700;
+            margin-bottom: 2px;
         }
 
         .colleague-info p {
@@ -627,118 +599,41 @@
             color: var(--muted);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                height: auto;
-                padding: 12px 0;
-            }
-            .sidebar-header {
-                padding: 0 16px 12px;
-            }
-            .sidebar-nav {
-                display: flex;
-                overflow-x: auto;
-            }
-            .tab-button {
-                padding: 12px 16px;
-                white-space: nowrap;
-            }
-            .tab-button.active {
-                border-left: none;
-                border-bottom: 4px solid var(--monday-blue);
-                padding-left: 16px;
-            }
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-            .calendar-grid {
-                font-size: 0.8em;
-            }
-            .calendar-day {
-                min-height: 80px;
-            }
-        }
-
-        /* Quick Add Modal Styles */
-        .quick-add-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .quick-add-btn {
-            padding: 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .quick-add-btn:hover {
-            border-color: var(--primary);
-            background: #f0f7ff;
-        }
-        .quick-add-btn i {
-            display: block;
-            font-size: 1.5em;
-            margin-bottom: 8px;
-        }
-
-        /* AL Balance Styles */
-        .al-balance-card {
-            background: linear-gradient(135deg, #0073ea 0%, #0052cc 100%);
-            color: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 20px rgba(0, 115, 234, 0.2);
-        }
-        .al-balance-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .al-balance-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-        .al-balance-value {
-            font-size: 2.5em;
-            font-weight: 800;
-        }
-        .al-balance-details {
-            display: flex;
-            gap: 24px;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
         /* Language Switcher */
-        .lang-switch {
+        .lang-switcher {
             display: flex;
             gap: 8px;
         }
+
         .lang-btn {
             padding: 4px 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            background: white;
-            cursor: pointer;
             font-size: 0.8em;
-            font-weight: 600;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 4px;
+            color: var(--muted);
         }
+
         .lang-btn.active {
-            background: var(--primary);
+            background-color: var(--monday-blue);
             color: white;
-            border-color: var(--primary);
+            border-color: var(--monday-blue);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; padding: 12px 0; }
+            .sidebar-header { display: none; }
+            .sidebar-nav { display: flex; overflow-x: auto; }
+            .tab-button { padding: 12px 16px; white-space: nowrap; width: auto; }
+            .tab-button.active { border-left: none; border-bottom: 3px solid var(--monday-blue); padding-left: 16px; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .calendar-day { min-height: 80px; }
+            .top-bar { padding: 0 16px; }
+            .page-container { padding: 16px; }
         }
 
         /* Validation Feedback */
@@ -819,57 +714,56 @@
         </div>
         <nav class="sidebar-nav">
             <button class="tab-button active" onclick="showTab('app')">
-                <span>📅</span> <span id="tabApp">Calendar</span>
+                <span>📅</span> <span id="tabApp">Calendar View</span>
             </button>
             <button class="tab-button" onclick="showTab('my-leaves')">
                 <span>👤</span> <span id="tabMyLeaves">My Leaves</span>
             </button>
             <button class="tab-button" onclick="showTab('admin')">
-                <span>⚙️</span> <span id="tabAdmin">Admin</span>
+                <span>⚙️</span> <span id="tabAdmin">Admin Panel</span>
             </button>
         </nav>
         <div class="sidebar-footer">
-            <p>&copy; 2026 CM Binary Digital</p>
-            <p>v3.3.0</p>
+            <p>v3.3.0 - CM Binary Digital</p>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
-            <div class="lang-switch">
-                <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
-                <button class="lang-btn" onclick="setLanguage('zh')">中文</button>
+            <div class="breadcrumb">
+                <span id="currentTabName">Calendar View</span>
             </div>
-            <div id="userDisplay" style="font-weight: 600; color: var(--muted);">
-                CM Binary Digital Team
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" onclick="setLanguage('zh')">繁</button>
             </div>
         </div>
 
-        <div class="page-container" id="scrollContainer">
-            <div class="pull-to-refresh" id="ptr">
+        <div id="scrollContainer" class="page-container">
+            <div id="ptr" class="pull-to-refresh">
                 <span id="ptrText">Pull to refresh</span>
             </div>
+
             <div class="container">
-                
                 <!-- App Tab -->
                 <div id="app" class="tab-content active">
                     <!-- Summary Cards -->
                     <div class="summary-grid">
                         <div class="summary-item">
-                            <div class="summary-label" id="labelTodayAL">Today's AL</div>
                             <div class="summary-number" id="todayAL">0</div>
-                            <div class="summary-names" id="todayALNames"></div>
+                            <div class="summary-label" id="labelTodayAL">Today's AL</div>
+                            <div class="summary-names" id="todayALNames">-</div>
                         </div>
                         <div class="summary-item">
-                            <div class="summary-label" id="labelTodayEL">Today's EL</div>
                             <div class="summary-number" id="todayEL">0</div>
-                            <div class="summary-names" id="todayELNames"></div>
+                            <div class="summary-label" id="labelTodayEL">Today's EL</div>
+                            <div class="summary-names" id="todayELNames">-</div>
                         </div>
                         <div class="summary-item">
-                            <div class="summary-label" id="labelTodayEvent">Today's Event</div>
                             <div class="summary-number" id="todayEvent">0</div>
-                            <div class="summary-names" id="todayEventNames"></div>
+                            <div class="summary-label" id="labelTodayEvent">Today's Event</div>
+                            <div class="summary-names" id="todayEventNames">-</div>
                         </div>
                     </div>
 
@@ -877,35 +771,83 @@
                         <!-- Calendar Card -->
                         <div class="card" style="grid-column: span 2;">
                             <div class="calendar-header">
-                                <h2 class="calendar-title" id="calendarTitle">April 2026</h2>
-                                <div style="display: flex; gap: 12px; align-items: center;">
-                                    <select id="yearSelector" onchange="jumpToYearMonth()" style="width: auto;"></select>
-                                    <select id="monthSelector" onchange="jumpToYearMonth()" style="width: auto;"></select>
-                                    <div class="calendar-nav">
-                                        <button class="nav-btn" onclick="previousMonth()">&lt;</button>
-                                        <button class="nav-btn" onclick="nextMonth()">&gt;</button>
-                                    </div>
+                                <h2 id="calendarTitle">April 2026</h2>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-outline" onclick="changeMonth(-1)">◀</button>
+                                    <button class="btn btn-outline" onclick="changeMonth(1)">▶</button>
                                 </div>
                             </div>
-                            <div class="calendar-grid">
-                                <div class="calendar-day-name" id="daySun">Sun</div>
-                                <div class="calendar-day-name" id="dayMon">Mon</div>
-                                <div class="calendar-day-name" id="dayTue">Tue</div>
-                                <div class="calendar-day-name" id="dayWed">Wed</div>
-                                <div class="calendar-day-name" id="dayThu">Thu</div>
-                                <div class="calendar-day-name" id="dayFri">Fri</div>
-                                <div class="calendar-day-name" id="daySat">Sat</div>
-                            </div>
-                            <div class="calendar-grid" id="calendarDays" style="border-top: none;">
-                                <!-- Days will be injected here -->
+                            <div class="calendar-grid" id="calendarGrid">
+                                <div class="calendar-day-head">Sun</div>
+                                <div class="calendar-day-head">Mon</div>
+                                <div class="calendar-day-head">Tue</div>
+                                <div class="calendar-day-head">Wed</div>
+                                <div class="calendar-day-head">Thu</div>
+                                <div class="calendar-day-head">Fri</div>
+                                <div class="calendar-day-head">Sat</div>
+                                <div id="calendarDays" style="display: contents;"></div>
                             </div>
                         </div>
 
-                        <!-- Team Summary Card -->
+                        <!-- New Request Card -->
                         <div class="card">
-                            <h3 id="titleTeamSummary">👥 Team Leave Summary</h3>
-                            <div id="teamSummary">
-                                <!-- Team summary will be injected here -->
+                            <h3 id="titleNewRequest">📝 New Leave Request</h3>
+                            <div class="form-group">
+                                <label id="labelColleague">Colleague</label>
+                                <select id="colleague"></select>
+                            </div>
+                            <div class="form-group">
+                                <label id="labelType">Type</label>
+                                <select id="type" onchange="toggleLeaveForm()">
+                                    <option value="AL">Annual Leave (AL)</option>
+                                    <option value="EL">Early Leave (EL)</option>
+                                    <option value="Birthday">Birthday Leave</option>
+                                    <option value="Exam">Exam Leave</option>
+                                </select>
+                            </div>
+
+                            <!-- AL Form -->
+                            <div id="alForm">
+                                <div class="form-group">
+                                    <label id="labelALMonth">Select Month</label>
+                                    <input type="month" id="alMonth" onchange="renderALDateSelector()">
+                                </div>
+                                <div id="alDateSelector" class="al-date-selector">
+                                    <!-- Date rows will be injected here -->
+                                </div>
+                            </div>
+
+                            <!-- EL Form -->
+                            <div id="elForm" style="display: none;">
+                                <div class="form-group">
+                                    <label id="labelELMonth">Select Month</label>
+                                    <input type="month" id="elMonth" onchange="renderELDateSelector()">
+                                </div>
+                                <div id="elDateSelector" class="al-date-selector">
+                                    <!-- EL checkboxes will be injected here -->
+                                </div>
+                            </div>
+
+                            <!-- Birthday/Exam Form -->
+                            <div id="specialForm" style="display: none;">
+                                <div class="form-group">
+                                    <label>Select Date</label>
+                                    <input type="date" id="specialDate">
+                                </div>
+                            </div>
+
+                            <div id="validationFeedback" class="validation-feedback"></div>
+                            
+                            <button class="btn btn-primary" onclick="submitLeave()" id="btnSubmit" style="width: 100%; margin-top: 12px;">
+                                Submit Request
+                            </button>
+                        </div>
+
+                        <!-- Team Summary Card -->
+                        <div class="card" style="grid-column: span 3;">
+                            <h3 id="titleTeamSummary">👥 Team Summary</h3>
+                            <div id="teamSummary" class="team-summary-grid">
+                                <!-- Colleague cards will be injected here -->
                             </div>
                         </div>
                     </div>
@@ -913,78 +855,25 @@
 
                 <!-- My Leaves Tab -->
                 <div id="my-leaves" class="tab-content">
-                    <div class="al-balance-card">
-                        <div class="al-balance-header">
-                            <div class="al-balance-title" id="labelALBalance">My Annual Leave Balance</div>
-                            <select id="myLeavesColleague" onchange="updateALBalanceDisplay()" style="width: auto; background: rgba(255,255,255,0.2); color: white; border: none;">
-                                <option value="">Select Colleague</option>
-                            </select>
-                        </div>
-                        <div class="al-balance-value" id="alBalanceValue">0.0</div>
-                        <div class="al-balance-details">
-                            <span id="labelTotalEntitlement">Total Entitlement: 15.0</span>
-                            <span id="labelUsedAL">Used: 0.0</span>
-                        </div>
-                    </div>
-
                     <div class="grid">
-                        <!-- New Leave Request -->
-                        <div class="card">
-                            <h3 id="titleNewRequest">📝 New Leave Request</h3>
-                            <div class="form-group">
-                                <label id="labelColleague">Colleague</label>
-                                <select id="colleague" onchange="validateAndShowFeedback()">
-                                    <option value="">Select Colleague</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label id="labelType">Leave Type</label>
-                                <select id="type" onchange="toggleLeaveTypeFields(); validateAndShowFeedback();">
-                                    <option value="AL">Annual Leave (AL)</option>
-                                    <option value="EL">Early Leave (EL)</option>
-                                    <option value="Birthday Leave">Birthday Leave</option>
-                                    <option value="Exam Leave">Exam Leave</option>
-                                </select>
-                            </div>
-
-                            <!-- AL Specific Fields -->
-                            <div id="alFields">
-                                <div class="form-group">
-                                    <label id="labelALMonth">Select Month</label>
-                                    <input type="month" id="alMonth" onchange="generateALDateSelector()">
+                        <div class="card" style="grid-column: span 2;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3 id="titleMyHistory" style="margin-bottom: 0; border-bottom: none;">My Leave History</h3>
+                                <div style="display: flex; gap: 12px;">
+                                    <select id="myLeavesColleague" onchange="displayMyHistory()" style="width: auto;"></select>
+                                    <select id="myLeavesYearFilter" onchange="displayMyHistory()" style="width: auto;"></select>
                                 </div>
-                                <div id="alDateSelector" class="al-date-selector" style="display: none; max-height: 300px; overflow-y: auto;">
-                                    <!-- Date checkboxes will be injected here -->
-                                </div>
-                            </div>
-
-                            <!-- EL Specific Fields -->
-                            <div id="elFields" style="display: none;">
-                                <div class="form-group">
-                                    <label id="labelELMonth">Select Month</label>
-                                    <input type="month" id="elMonth" onchange="generateELDateSelector()">
-                                </div>
-                                <div id="elDateDropdown" class="al-date-selector" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- EL date checkboxes -->
-                                </div>
-                            </div>
-
-                            <div id="validationFeedback" class="validation-feedback">
-                                <div id="validationMsg"></div>
-                                <ul id="ruleList" class="rule-list"></ul>
-                            </div>
-
-                            <button class="btn btn-primary" onclick="submitLeave()" id="btnSubmit">Submit Request</button>
-                        </div>
-
-                        <!-- My History -->
-                        <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-                                <h3 style="margin-bottom: 0; border-bottom: none;" id="titleMyHistory">History</h3>
-                                <select id="myLeavesYearFilter" onchange="displayMyHistory()" style="width: auto; padding: 4px 8px;"></select>
                             </div>
                             <div id="myHistoryList">
                                 <!-- History will be injected here -->
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3 id="labelALBalance">My Annual Leave Balance</h3>
+                            <div style="text-align: center; padding: 20px 0;">
+                                <div id="labelTotalEntitlement" style="font-size: 0.9em; color: var(--muted); margin-bottom: 8px;">Total Entitlement: 15.0</div>
+                                <div id="alBalanceValue" style="font-size: 3em; font-weight: 800; color: var(--monday-blue);">0.0</div>
+                                <div id="labelUsedAL" style="font-size: 0.9em; color: var(--muted); margin-top: 8px;">Used: 0.0</div>
                             </div>
                         </div>
                     </div>
@@ -993,11 +882,10 @@
                 <!-- Admin Tab -->
                 <div id="admin" class="tab-content">
                     <div class="grid">
-                        <!-- All Leaves List -->
                         <div class="card" style="grid-column: span 2;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-                                <h3 style="margin-bottom: 0; border-bottom: none;" id="titleAllLeaves">📋 All Leave Requests</h3>
-                                <div style="display: flex; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3 id="titleAllLeaves" style="margin-bottom: 0; border-bottom: none;">📋 All Leave Requests</h3>
+                                <div style="display: flex; gap: 12px;">
                                     <select id="adminYearFilter" onchange="updateAdminTab()" style="width: auto;"></select>
                                     <select id="adminMonthFilter" onchange="updateAdminTab()" style="width: auto;"></select>
                                 </div>
@@ -1108,174 +996,59 @@
                             <h2 id="quickAddModalTitle">Quick Add</h2>
                             <button class="close-modal" onclick="closeQuickAddModal()">&times;</button>
                         </div>
-                        <p style="margin-bottom: 20px; color: var(--muted); font-weight: 600;" id="quickAddDate"></p>
-                        
-                        <div class="quick-add-grid">
-                            <button class="quick-add-btn" onclick="quickAddType('AL')">
-                                <span>📅</span> AL
-                            </button>
-                            <button class="quick-add-btn" onclick="quickAddType('EL')">
-                                <span>🏃</span> EL
-                            </button>
-                            <button class="quick-add-btn" onclick="quickAddType('Birthday Leave')">
-                                <span>🎂</span> Birthday
-                            </button>
-                            <button class="quick-add-btn" onclick="quickAddType('Exam Leave')">
-                                <span>📝</span> Exam
-                            </button>
-                            <button class="quick-add-btn" onclick="quickAddType('EVENT')" style="grid-column: span 2;">
-                                <span>📢</span> Team Event
-                            </button>
+                        <div class="form-group">
+                            <label id="quickAddLabelColleague">Colleague</label>
+                            <select id="quickAddColleague"></select>
                         </div>
-
-                        <div id="quickAddForm" style="display: none; border-top: 1px solid var(--border); padding-top: 20px;">
-                            <div class="form-group">
-                                <label id="quickAddLabelColleague">Colleague</label>
-                                <select id="quickAddColleague"></select>
-                            </div>
-                            
-                            <div id="quickAddHalfDaySection" class="form-group" style="display: none;">
-                                <label id="quickAddLabelHalfDay">Half Day</label>
-                                <div class="al-half-day-selector">
-                                    <button class="half-day-btn" onclick="setQuickAddHalfDay('full')">Full</button>
-                                    <button class="half-day-btn" onclick="setQuickAddHalfDay('am')">AM</button>
-                                    <button class="half-day-btn" onclick="setQuickAddHalfDay('pm')">PM</button>
-                                </div>
-                            </div>
-
-                            <div id="quickAddEventNameSection" class="form-group" style="display: none;">
-                                <label id="quickAddLabelEventName">Event Name</label>
-                                <input type="text" id="quickAddEventName" placeholder="Event name">
-                            </div>
-
-                            <button class="btn btn-primary" onclick="saveQuickAdd()" id="btnQuickAddSave">Save</button>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="quickAddType" onchange="toggleQuickAddForm()">
+                                <option value="AL">Annual Leave (AL)</option>
+                                <option value="EL">Early Leave (EL)</option>
+                                <option value="Event">Team Event</option>
+                            </select>
                         </div>
+                        <div id="quickAddHalfDaySection" class="form-group">
+                            <label id="quickAddLabelHalfDay">Half Day</label>
+                            <div class="al-half-day-selector">
+                                <button id="quickAddHalfDay_full" class="half-day-btn active" onclick="setQuickAddHalfDay('full')">Full Day</button>
+                                <button id="quickAddHalfDay_am" class="half-day-btn" onclick="setQuickAddHalfDay('am')">AM</button>
+                                <button id="quickAddHalfDay_pm" class="half-day-btn" onclick="setQuickAddHalfDay('pm')">PM</button>
+                            </div>
+                        </div>
+                        <div id="quickAddEventSection" class="form-group" style="display: none;">
+                            <label id="quickAddLabelEventName">Event Name</label>
+                            <input type="text" id="quickAddEventName">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveQuickAdd()" id="btnQuickAddSave" style="width: 100%; margin-top: 12px;">Save</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- Configuration & State ---
-        const COLLEAGUES = ['Jenny', 'Holly', 'Aaron', 'Varina', 'Rita', 'Jack'];
-        const COLLEAGUE_COLORS = {
-            'Jenny': '#e44258', // Red
-            'Holly': '#00c875', // Green
-            'Aaron': '#0073ea', // Blue
-            'Varina': '#a25ddc', // Purple
-            'Rita': '#fdab3d',   // Orange
-            'Jack': '#ff642e'    // Dark Orange
-        };
-
-        // Hong Kong Public Holidays 2026-2030
-        const hkHolidays = {
-            // 2026
-            '2026-01-01': 'New Year\'s Day',
-            '2026-02-17': 'Chinese New Year',
-            '2026-02-18': 'Chinese New Year',
-            '2026-02-19': 'Chinese New Year',
-            '2026-04-03': 'Good Friday',
-            '2026-04-04': 'Easter Saturday',
-            '2026-04-06': 'Ching Ming Festival',
-            '2026-04-07': 'Easter Monday',
-            '2026-05-01': 'Labour Day',
-            '2026-05-25': 'Buddha\'s Birthday',
-            '2026-06-19': 'Dragon Boat Festival',
-            '2026-07-01': 'HKSAR Establishment Day',
-            '2026-09-26': 'Day after Mid-Autumn Festival',
-            '2026-10-01': 'National Day',
-            '2026-10-19': 'Chung Yeung Festival',
-            '2026-12-25': 'Christmas Day',
-            '2026-12-26': 'Boxing Day',
-            // 2027
-            '2027-01-01': 'New Year\'s Day',
-            '2027-02-06': 'Chinese New Year',
-            '2027-02-08': 'Chinese New Year',
-            '2027-02-09': 'Chinese New Year',
-            '2027-03-26': 'Good Friday',
-            '2027-03-27': 'Easter Saturday',
-            '2027-03-29': 'Easter Monday',
-            '2027-04-05': 'Ching Ming Festival',
-            '2027-05-01': 'Labour Day',
-            '2027-05-13': 'Buddha\'s Birthday',
-            '2027-06-09': 'Dragon Boat Festival',
-            '2027-07-01': 'HKSAR Establishment Day',
-            '2027-09-16': 'Day after Mid-Autumn Festival',
-            '2027-10-01': 'National Day',
-            '2027-10-08': 'Chung Yeung Festival',
-            '2027-12-25': 'Christmas Day',
-            '2027-12-27': 'Boxing Day',
-            // 2028
-            '2028-01-01': 'New Year\'s Day',
-            '2028-01-26': 'Chinese New Year',
-            '2028-01-27': 'Chinese New Year',
-            '2028-01-28': 'Chinese New Year',
-            '2028-04-04': 'Ching Ming Festival',
-            '2028-04-14': 'Good Friday',
-            '2028-04-15': 'Easter Saturday',
-            '2028-04-17': 'Easter Monday',
-            '2028-05-01': 'Labour Day',
-            '2028-05-02': 'Buddha\'s Birthday',
-            '2028-05-29': 'Dragon Boat Festival',
-            '2028-07-01': 'HKSAR Establishment Day',
-            '2028-10-02': 'National Day',
-            '2028-10-03': 'Day after Mid-Autumn Festival',
-            '2028-10-26': 'Chung Yeung Festival',
-            '2028-12-25': 'Christmas Day',
-            '2028-12-26': 'Boxing Day',
-            // 2029
-            '2029-01-01': 'New Year\'s Day',
-            '2029-02-13': 'Chinese New Year',
-            '2029-02-14': 'Chinese New Year',
-            '2029-02-15': 'Chinese New Year',
-            '2029-03-30': 'Good Friday',
-            '2029-03-31': 'Easter Saturday',
-            '2029-04-02': 'Easter Monday',
-            '2029-04-04': 'Ching Ming Festival',
-            '2029-05-01': 'Labour Day',
-            '2029-05-21': 'Buddha\'s Birthday',
-            '2029-06-16': 'Dragon Boat Festival',
-            '2029-07-02': 'HKSAR Establishment Day',
-            '2029-09-22': 'Day after Mid-Autumn Festival',
-            '2029-10-01': 'National Day',
-            '2029-10-16': 'Chung Yeung Festival',
-            '2029-12-25': 'Christmas Day',
-            '2029-12-26': 'Boxing Day',
-            // 2030
-            '2030-01-01': 'New Year\'s Day',
-            '2030-02-02': 'Chinese New Year',
-            '2030-02-04': 'Chinese New Year',
-            '2030-02-05': 'Chinese New Year',
-            '2030-04-05': 'Ching Ming Festival',
-            '2030-04-19': 'Good Friday',
-            '2030-04-20': 'Easter Saturday',
-            '2030-04-22': 'Easter Monday',
-            '2030-05-01': 'Labour Day',
-            '2030-05-09': 'Buddha\'s Birthday',
-            '2030-06-05': 'Dragon Boat Festival',
-            '2030-07-01': 'HKSAR Establishment Day',
-            '2030-09-13': 'Day after Mid-Autumn Festival',
-            '2030-10-01': 'National Day',
-            '2030-10-04': 'Chung Yeung Festival',
-            '2030-12-25': 'Christmas Day',
-            '2030-12-26': 'Boxing Day'
-        };
-
+        // --- Constants & State ---
+        const COLLEAGUES = ['Jenny', 'Holly', 'Aaron', 'Varina', 'Rita', 'Jack', 'Holiday'];
+        const LEAVE_TYPES = ['AL', 'EL', 'Birthday', 'Exam'];
+        
         const translations = {
             en: {
                 sidebarTitle: 'Leave Bot',
-                tabApp: 'Calendar',
+                tabApp: 'Calendar View',
                 tabMyLeaves: 'My Leaves',
-                tabAdmin: 'Admin',
+                tabAdmin: 'Admin Panel',
                 labelTodayAL: "Today's AL",
                 labelTodayEL: "Today's EL",
                 labelTodayEvent: "Today's Event",
-                titleTeamSummary: '👥 Team Leave Summary',
+                titleTeamSummary: '👥 Team Summary',
                 titleNewRequest: '📝 New Leave Request',
                 labelColleague: 'Colleague',
-                labelType: 'Leave Type',
+                labelType: 'Type',
                 labelALMonth: 'Select Month',
                 labelELMonth: 'Select Month',
                 btnSubmit: 'Submit Request',
-                titleMyHistory: 'History',
+                titleMyHistory: 'My Leave History',
                 titleAllLeaves: '📋 All Leave Requests',
                 titleAdminActions: '🛠️ Admin Actions',
                 btnSyncMonday: '🔄 Sync All to Monday.com',
@@ -1296,7 +1069,7 @@
                 editEventLabelName: 'Event Name',
                 btnSaveEditEvent: 'Save Changes',
                 btnDeleteEvent: 'Delete',
-                noLeaves: 'No leave requests for this month.',
+                noLeaves: 'No leave records for this month.',
                 quickAddModalTitle: 'Quick Add',
                 quickAddLabelColleague: 'Colleague',
                 quickAddLabelHalfDay: 'Half Day',
@@ -1512,6 +1285,14 @@
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
             
+            // Update current tab name in top bar
+            const tabNames = {
+                'app': currentLanguage === 'zh' ? '日曆視圖' : 'Calendar View',
+                'my-leaves': currentLanguage === 'zh' ? '我的請假' : 'My Leaves',
+                'admin': currentLanguage === 'zh' ? '管理後台' : 'Admin Panel'
+            };
+            document.getElementById('currentTabName').textContent = tabNames[tabId];
+            
             if (tabId === 'admin') updateAdminTab();
             if (tabId === 'my-leaves') updateALBalanceDisplay();
         }
@@ -1600,1229 +1381,694 @@
             document.getElementById('todayEvent').textContent = todayEvents.length;
             document.getElementById('todayEventNames').textContent = todayEvents.map(e => e.name).join(', ') || '-';
 
-            // Team Summary
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonthNum = now.getMonth() + 1;
+            displayTeamSummary();
+        }
+
+        function displayTeamSummary() {
+            const container = document.getElementById('teamSummary');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const today = getTodayISO();
             
-            let teamHtml = '';
-            COLLEAGUES.forEach(colleague => {
-                const al = leaveRecords.filter(r => r.colleague === colleague && r.type === 'AL').length;
-                const el = leaveRecords.filter(r => r.colleague === colleague && r.type === 'EL').length;
-                teamHtml += `
-                    <div class="colleague-card">
-                        <div class="colleague-avatar" style="background-color: ${COLLEAGUE_COLORS[colleague]}">${colleague.charAt(0)}</div>
-                        <div class="colleague-info">
-                            <h4>${colleague}</h4>
-                            <p>${al} AL, ${el} EL</p>
-                        </div>
+            COLLEAGUES.forEach(c => {
+                const todayLeave = leaveRecords.find(r => r.colleague === c && r.date === today);
+                const card = document.createElement('div');
+                card.className = 'colleague-card';
+                
+                let statusText = currentLanguage === 'zh' ? '在線' : 'Available';
+                let statusColor = 'var(--monday-green)';
+                
+                if (todayLeave) {
+                    statusText = todayLeave.type + (todayLeave.halfDay ? ` (${todayLeave.halfDay.toUpperCase()})` : '');
+                    statusColor = todayLeave.type === 'AL' ? 'var(--monday-blue)' : 'var(--monday-orange)';
+                }
+
+                card.innerHTML = `
+                    <div class="avatar" style="background-color: ${statusColor}">${c[0]}</div>
+                    <div class="colleague-info">
+                        <h4>${c}</h4>
+                        <p style="color: ${statusColor}; font-weight: 600;">${statusText}</p>
                     </div>
                 `;
+                container.appendChild(card);
             });
-            document.getElementById('teamSummary').innerHTML = teamHtml;
+        }
+
+        // --- Calendar Logic ---
+        function changeMonth(delta) {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderCalendar();
         }
 
         function renderCalendar() {
+            const grid = document.getElementById('calendarDays');
+            const title = document.getElementById('calendarTitle');
+            if (!grid || !title) return;
+
+            grid.innerHTML = '';
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
             
-            document.getElementById('calendarTitle').textContent = 
-                currentMonth.toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { year: 'numeric', month: 'long' });
+            title.textContent = currentLanguage === 'zh' 
+                ? `${year}年 ${month + 1}月` 
+                : currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
 
-            const calendarDays = document.getElementById('calendarDays');
-            calendarDays.innerHTML = '';
-
-            let current = new Date(startDate);
-            for (let i = 0; i < 42; i++) {
-                const dayDiv = document.createElement('div');
-                const dateISO = dateToISO(current);
-                const dayLeaves = leaveRecords.filter(r => r.date === dateISO);
-                const dayEvents = events.filter(e => e.date === dateISO);
-                const isHoliday = hkHolidays[dateISO];
-                
-                dayDiv.className = 'calendar-day';
-                if (current.getMonth() !== month) {
-                    dayDiv.classList.add('other-month');
-                }
-                if (isHoliday) {
-                    dayDiv.classList.add('holiday');
-                }
-                if (dayEvents.length > 0) {
-                    dayDiv.classList.add('event');
-                }
-
-                let html = `<div class="calendar-day-number">${current.getDate()}</div>`;
-                html += '<div class="calendar-day-leaves">';
-                
-                if (isHoliday) {
-                    html += `<div class="holiday-badge" onclick="syncHolidayToMonday('${dateISO}', '${isHoliday}')">${isHoliday}</div>`;
-                }
-                
-                dayLeaves.forEach(leave => {
-                    const color = COLLEAGUE_COLORS[leave.colleague] || '#999';
-                    const halfDayText = leave.halfDay ? ` (${leave.halfDay.toUpperCase()})` : '';
-                    let typeLabel = leave.type;
-                    if (leave.type === 'Birthday Leave') typeLabel = 'BD';
-                    else if (leave.type === 'Exam Leave') typeLabel = 'Exam';
-                    
-                    const leaveLabel = `${leave.colleague} ${typeLabel}`;
-                    const fullTypeClass = leave.type.toLowerCase().replace(/\s+/g, '-');
-                    html += `<div class="leave-badge ${fullTypeClass}" data-id="${leave.id}" data-type="${leave.type}" onclick="editLeave('${leave.id}')" title="${leave.colleague} ${leave.type}" style="background-color: ${color}; color: white; cursor: pointer;" draggable="true">${leaveLabel}${halfDayText}</div>`;
-                });
-                
-                dayEvents.forEach(event => {
-                    html += `<div class="event-badge" onclick="editEvent('${event.id}'); return false;" style="cursor: pointer;">${event.name}</div>`;
-                });
-                
-                html += '</div>';
-
-                dayDiv.innerHTML = html;
-                dayDiv.setAttribute('data-date', dateISO);
-                dayDiv.onclick = (e) => {
-                    // Check if clicking on event badge or its children
-                    const eventBadge = e.target.closest('.event-badge');
-                    if (eventBadge) {
-                        const eventId = eventBadge.getAttribute('data-event-id');
-                        if (eventId) {
-                            editEvent(eventId);
-                            return;
-                        }
-                    }
-                    // Don't open modal if clicking on badges or their children
-                    if (e.target.closest('.leave-badge') || e.target.closest('.event-badge') || e.target.closest('.holiday-badge')) {
-                        return;
-                    }
-                    openQuickAddModal(dateISO);
-                };
-                calendarDays.appendChild(dayDiv);
-                current.setDate(current.getDate() + 1);
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day other-month';
+                day.innerHTML = `<div class="day-number">${prevMonthDays - i}</div>`;
+                grid.appendChild(day);
             }
-            
-            initializeDragAndDrop();
-        }
 
-        function previousMonth() {
-            currentMonth.setMonth(currentMonth.getMonth() - 1);
-            updateYearMonthSelectors();
-            renderCalendar();
-        }
-
-        function nextMonth() {
-            currentMonth.setMonth(currentMonth.getMonth() + 1);
-            updateYearMonthSelectors();
-            renderCalendar();
-        }
-
-        function initializeYearMonthSelectors() {
-            const yearSelector = document.getElementById('yearSelector');
-            const monthSelector = document.getElementById('monthSelector');
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonthNum = now.getMonth();
-            
-            // Populate year selector (from 2026 to 2030)
-            for (let year = 2026; year <= 2030; year++) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelector.appendChild(option);
-            }
-            
-            // Populate month selector
-            const monthNames = currentLanguage === 'zh' ? 
-                ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] :
-                ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            
-            monthNames.forEach((name, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = name;
-                monthSelector.appendChild(option);
-            });
-            
-            // Set current month and year
-            currentMonth = new Date(currentYear, currentMonthNum, 1);
-            
-            // Year filter already initialized in initializeMyLeavesYearFilter
-            
-            updateYearMonthSelectors();
-            renderCalendar();
-        }
-
-        function updateYearMonthSelectors() {
-            const yearSelector = document.getElementById('yearSelector');
-            const monthSelector = document.getElementById('monthSelector');
-            yearSelector.value = currentMonth.getFullYear();
-            monthSelector.value = currentMonth.getMonth();
-        }
-
-        function jumpToYearMonth() {
-            const yearSelector = document.getElementById('yearSelector');
-            const monthSelector = document.getElementById('monthSelector');
-            const year = parseInt(yearSelector.value);
-            const month = parseInt(monthSelector.value);
-            currentMonth = new Date(year, month, 1);
-            renderCalendar();
-        }
-
-        // Badge drag-and-drop to move leave to another date
-        let draggedBadge = null;
-        let draggedLeaveId = null;
-        let draggedLeaveType = null;
-
-        function initializeDragAndDrop() {
-            // Delegate drag events on calendar
-            const calendarDays = document.getElementById('calendarDays');
-            if (!calendarDays) return;
-            
-            // Setup drag start on badges
-            calendarDays.addEventListener('dragstart', (e) => {
-                const badge = e.target.closest('.leave-badge');
-                if (!badge) return;
+            // Current month days
+            const today = getTodayISO();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const day = document.createElement('div');
+                day.className = 'calendar-day' + (dateStr === today ? ' today' : '');
+                day.dataset.date = dateStr;
                 
-                draggedBadge = badge;
-                draggedLeaveId = badge.getAttribute('data-id');
-                draggedLeaveType = badge.getAttribute('data-type');
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', draggedLeaveId);
-                e.target.style.cursor = 'grabbing';
-            });
-            
-            // Setup drag over and drop on calendar days
-            calendarDays.addEventListener('dragover', (e) => {
-                if (draggedLeaveId) {
+                // Drag & Drop Handlers
+                day.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    const day = e.target.closest('.calendar-day');
-                    if (day) {
-                        day.style.backgroundColor = 'rgba(10, 126, 164, 0.1)';
-                    }
-                }
-            });
-            
-            calendarDays.addEventListener('dragleave', (e) => {
-                const day = e.target.closest('.calendar-day');
-                if (day) {
-                    day.style.backgroundColor = '';
-                }
-            });
-            
-            calendarDays.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const day = e.target.closest('.calendar-day');
-                if (day && draggedLeaveId) {
-                    const newDate = day.getAttribute('data-date');
-                    if (newDate) {
-                        moveLeaveToDate(draggedLeaveId, draggedLeaveType, newDate);
-                    }
-                    day.style.backgroundColor = '';
-                }
-                if (draggedBadge) draggedBadge.style.cursor = 'grab';
-                draggedBadge = null;
-                draggedLeaveId = null;
-                draggedLeaveType = null;
-            });
-        }
-        
-        function moveLeaveToDate(leaveId, leaveType, newDate) {
-            // Send update to server via WebSocket
-            const message = {
-                type: 'moveLeave',
-                leaveId: leaveId,
-                leaveType: leaveType,
-                newDate: newDate
-            };
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(message));
-            }
-        }
-
-        let editingEventId = null;
-        
-        function addEvent() {
-            const date = document.getElementById('eventDate').value;
-            const name = document.getElementById('eventName').value;
-            
-            if (!date || !name) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            // Only for creating new events
-            fetch('/api/event', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, name })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Create failed: ' + res.status);
-                return res.json();
-            })
-            .then(() => {
-                clearEventForm();
-            })
-            .catch(err => {
-                console.error('Error adding event:', err);
-                alert('Error adding event: ' + err.message);
-            });
-        }
-        
-        function clearEventForm() {
-            document.getElementById('eventDate').value = getTodayISO();
-            document.getElementById('eventName').value = '';
-            fetchData();
-        }
-        
-        function editEvent(id) {
-            const event = events.find(e => e.id === id);
-            if (!event) return;
-            
-            editingEventId = id;
-            document.getElementById('editEventDate').value = event.date;
-            document.getElementById('editEventName').value = event.name;
-            
-            // Update modal labels based on current language
-            const t = translations[currentLanguage];
-            document.getElementById('editEventModalTitle').textContent = t.editEventModalTitle || 'Edit Event';
-            document.getElementById('editEventLabelDate').textContent = t.labelEventDate || 'Date';
-            document.getElementById('editEventLabelName').textContent = t.labelEventName || 'Event Name';
-            
-            document.getElementById('editEventModal').classList.add('active');
-        }
-        
-        function closeEditEventModal() {
-            document.getElementById('editEventModal').classList.remove('active');
-            editingEventId = null;
-        }
-        
-        function saveEditEvent() {
-            if (!editingEventId) {
-                alert(currentLanguage === 'zh' ? '未選擇事件' : 'No event selected');
-                return;
-            }
-            
-            const date = document.getElementById('editEventDate').value;
-            const name = document.getElementById('editEventName').value;
-            
-            if (!date || !name) {
-                alert(currentLanguage === 'zh' ? '請填寫所有欄位' : 'Please fill in all fields');
-                return;
-            }
-            
-            fetch(`/api/event/${editingEventId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, name })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Update failed: ' + res.status);
-                return res.json();
-            })
-            .then(() => {
-                closeEditEventModal();
-                fetchData();
-            })
-            .catch(err => {
-                console.error('Error updating event:', err);
-                alert('Error updating event: ' + err.message);
-            });
-        }
-        
-        function deleteEventFromModal() {
-            if (!editingEventId) return;
-            const msg = currentLanguage === 'zh' ? '確定要刪除此事件嗎？' : 'Delete this event?';
-            if (confirm(msg)) {
-                fetch(`/api/event/${editingEventId}`, { method: 'DELETE' })
-                .then(res => {
-                    if (!res.ok) throw new Error('Delete failed: ' + res.status);
-                    return res.json();
-                })
-                .then(() => {
-                    closeEditEventModal();
-                    fetchData();
-                })
-                .catch(err => {
-                    console.error('Error deleting event:', err);
-                    alert('Error deleting event: ' + err.message);
+                    day.classList.add('drag-over');
                 });
+                day.addEventListener('dragleave', () => day.classList.remove('drag-over'));
+                day.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    day.classList.remove('drag-over');
+                    const leaveId = e.dataTransfer.getData('text/plain');
+                    handleLeaveDrop(leaveId, dateStr);
+                });
+
+                day.innerHTML = `<div class="day-number">${i}</div>`;
+                
+                // Add Leaves
+                const dayLeaves = leaveRecords.filter(r => r.date === dateStr);
+                dayLeaves.forEach(r => {
+                    const badge = document.createElement('div');
+                    badge.className = `leave-badge badge-${r.type.toLowerCase()}`;
+                    badge.draggable = true;
+                    badge.textContent = `${r.colleague} - ${r.type}${r.halfDay ? ' (' + r.halfDay.toUpperCase() + ')' : ''}`;
+                    badge.onclick = (e) => { e.stopPropagation(); openEditModal(r); };
+                    
+                    // Drag Start
+                    badge.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', r.id);
+                        badge.classList.add('dragging');
+                    });
+                    badge.addEventListener('dragend', () => badge.classList.remove('dragging'));
+                    
+                    day.appendChild(badge);
+                });
+
+                // Add Events
+                const dayEvents = events.filter(e => e.date === dateStr);
+                dayEvents.forEach(e => {
+                    const badge = document.createElement('div');
+                    badge.className = 'leave-badge badge-event';
+                    badge.textContent = `📌 ${e.name}`;
+                    badge.onclick = (ev) => { ev.stopPropagation(); openEditEventModal(e); };
+                    day.appendChild(badge);
+                });
+
+                // Quick Add on click
+                day.onclick = () => openQuickAddModal(dateStr);
+                
+                grid.appendChild(day);
             }
         }
 
-        function displayEvents() {
-            const list = document.getElementById('eventsList');
-            if (!list) return;
-            
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth();
-            
-            const filteredEvents = events.filter(e => {
-                const d = new Date(e.date);
-                return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
-            }).sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            if (filteredEvents.length === 0) {
-                list.innerHTML = `<p style="color: var(--muted);">${currentLanguage === 'zh' ? '本月無事件' : 'No events this month'}</p>`;
-                return;
+        function handleLeaveDrop(leaveId, newDate) {
+            const record = leaveRecords.find(r => r.id === leaveId);
+            if (!record || record.date === newDate) return;
+
+            // Optimistic UI update
+            const oldDate = record.date;
+            record.date = newDate;
+            renderCalendar();
+
+            // Send to server
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'moveLeave',
+                    leaveId: leaveId,
+                    newDate: newDate
+                }));
             }
-            
-            let html = '';
-            filteredEvents.forEach(e => {
-                html += `
-                    <div class="colleague-card" onclick="editEvent('${e.id}')" style="cursor: pointer;">
-                        <div class="colleague-avatar" style="background-color: var(--primary)">E</div>
-                        <div class="colleague-info">
-                            <h4>${e.name}</h4>
-                            <p>${formatDate(e.date)}</p>
-                        </div>
-                    </div>
-                `;
-            });
-            list.innerHTML = html;
         }
 
-        function toggleLeaveTypeFields() {
+        // --- Form Logic ---
+        function toggleLeaveForm() {
             const type = document.getElementById('type').value;
-            document.getElementById('alFields').style.display = (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') ? 'block' : 'none';
-            document.getElementById('elFields').style.display = type === 'EL' ? 'block' : 'none';
+            document.getElementById('alForm').style.display = type === 'AL' ? 'block' : 'none';
+            document.getElementById('elForm').style.display = type === 'EL' ? 'block' : 'none';
+            document.getElementById('specialForm').style.display = (type === 'Birthday' || type === 'Exam') ? 'block' : 'none';
             
-            // Reset selectors
-            if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
-                document.getElementById('alMonth').value = '';
-                document.getElementById('alDateSelector').style.display = 'none';
-            } else {
-                document.getElementById('elMonth').value = '';
-                document.getElementById('elDateDropdown').innerHTML = '';
-            }
+            if (type === 'AL') renderALDateSelector();
+            if (type === 'EL') renderELDateSelector();
         }
 
-        function generateALDateSelector() {
-            const monthValue = document.getElementById('alMonth').value;
-            if (!monthValue) return;
-
-            const [year, month] = monthValue.split('-').map(Number);
+        function renderALDateSelector() {
+            const monthStr = document.getElementById('alMonth').value;
             const container = document.getElementById('alDateSelector');
-            container.innerHTML = '';
-            container.style.display = 'block';
-            selectedALDates = {};
+            if (!monthStr || !container) return;
 
+            container.innerHTML = '';
+            const [year, month] = monthStr.split('-').map(Number);
             const daysInMonth = new Date(year, month, 0).getDate();
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateISO = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dateObj = new Date(year, month - 1, day);
-                const dayOfWeek = dateObj.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                const isHoliday = hkHolidays[dateISO];
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayOfWeek = new Date(year, month - 1, i).getDay();
+                if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Skip weekends
 
                 const row = document.createElement('div');
                 row.className = 'al-date-row';
-                if (isWeekend || isHoliday) row.style.opacity = '0.5';
-
                 row.innerHTML = `
-                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; cursor: pointer;">
-                        <input type="checkbox" id="alDate_${dateISO}" value="${dateISO}" onchange="updateALSelection()">
-                        <span>${formatDate(dateISO)} ${isHoliday ? `(${isHoliday})` : ''}</span>
-                    </label>
+                    <div style="font-size: 0.9em; font-weight: 600;">${i} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeek]})</div>
                     <div class="al-half-day-selector">
-                        <button id="halfDay_${dateISO}_full" class="half-day-btn active" onclick="setALHalfDay('${dateISO}', 'full')">Full</button>
-                        <button id="halfDay_${dateISO}_am" class="half-day-btn" onclick="setALHalfDay('${dateISO}', 'am')">AM</button>
-                        <button id="halfDay_${dateISO}_pm" class="half-day-btn" onclick="setALHalfDay('${dateISO}', 'pm')">PM</button>
+                        <button class="half-day-btn ${selectedALDates[dateStr] === 'full' ? 'active' : ''}" onclick="toggleALDate('${dateStr}', 'full')">Full</button>
+                        <button class="half-day-btn ${selectedALDates[dateStr] === 'am' ? 'active' : ''}" onclick="toggleALDate('${dateStr}', 'am')">AM</button>
+                        <button class="half-day-btn ${selectedALDates[dateStr] === 'pm' ? 'active' : ''}" onclick="toggleALDate('${dateStr}', 'pm')">PM</button>
                     </div>
                 `;
                 container.appendChild(row);
             }
         }
 
-        function generateELDateSelector() {
-            const monthValue = document.getElementById('elMonth').value;
-            if (!monthValue) return;
+        function toggleALDate(date, type) {
+            if (selectedALDates[date] === type) {
+                delete selectedALDates[date];
+            } else {
+                selectedALDates[date] = type;
+            }
+            renderALDateSelector();
+        }
 
-            const [year, month] = monthValue.split('-').map(Number);
-            const container = document.getElementById('elDateDropdown');
+        function renderELDateSelector() {
+            const monthStr = document.getElementById('elMonth').value;
+            const container = document.getElementById('elDateSelector');
+            if (!monthStr || !container) return;
+
             container.innerHTML = '';
-            selectedELDates = [];
-
+            const [year, month] = monthStr.split('-').map(Number);
             const daysInMonth = new Date(year, month, 0).getDate();
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateISO = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const checkbox = document.createElement('label');
-                checkbox.className = 'checkbox-item';
-                checkbox.innerHTML = `
-                    <input type="checkbox" value="${dateISO}" onchange="updateELSelection()">
-                    <span>${formatDate(dateISO)}</span>
-                `;
-                container.appendChild(checkbox);
+
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+            grid.style.gap = '8px';
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayOfWeek = new Date(year, month - 1, i).getDay();
+                if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+                const btn = document.createElement('button');
+                btn.className = 'half-day-btn' + (selectedELDates.includes(dateStr) ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => {
+                    if (selectedELDates.includes(dateStr)) {
+                        selectedELDates = selectedELDates.filter(d => d !== dateStr);
+                    } else {
+                        selectedELDates.push(dateStr);
+                    }
+                    renderELDateSelector();
+                };
+                grid.appendChild(btn);
             }
+            container.appendChild(grid);
         }
 
-        function updateALSelection() {
-            const checkboxes = document.querySelectorAll('#alDateSelector input[type="checkbox"]');
-            selectedALDates = {};
-            checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    const dateISO = cb.value;
-                    selectedALDates[dateISO] = 'full';
+        async function submitLeave() {
+            const colleague = document.getElementById('colleague').value;
+            const type = document.getElementById('type').value;
+            const feedback = document.getElementById('validationFeedback');
+            
+            if (!colleague) {
+                alert(currentLanguage === 'zh' ? '請選擇同事' : 'Please select a colleague');
+                return;
+            }
+
+            let requests = [];
+            if (type === 'AL') {
+                for (const [date, halfDay] of Object.entries(selectedALDates)) {
+                    requests.push({ colleague, type: 'AL', date, halfDay: halfDay === 'full' ? null : halfDay });
                 }
-            });
-        }
-
-        function setALHalfDay(dateISO, halfDay) {
-            event.preventDefault();
-            const checkbox = document.getElementById(`alDate_${dateISO}`);
-            if (!checkbox.checked) {
-                checkbox.checked = true;
+            } else if (type === 'EL') {
+                selectedELDates.forEach(date => {
+                    requests.push({ colleague, type: 'EL', date, halfDay: 'pm' });
+                });
+            } else {
+                const date = document.getElementById('specialDate').value;
+                if (!date) {
+                    alert(currentLanguage === 'zh' ? '請選擇日期' : 'Please select a date');
+                    return;
+                }
+                requests.push({ colleague, type, date, halfDay: null });
             }
-            selectedALDates[dateISO] = halfDay;
+
+            if (requests.length === 0) {
+                alert(currentLanguage === 'zh' ? '請選擇至少一天' : 'Please select at least one day');
+                return;
+            }
+
+            // Validate all requests
+            feedback.className = 'validation-feedback';
+            feedback.innerHTML = 'Validating...';
             
-            // Update button styles
-            document.querySelectorAll(`#halfDay_${dateISO}_full, #halfDay_${dateISO}_am, #halfDay_${dateISO}_pm`).forEach(btn => {
-                btn.classList.remove('active');
+            let allPassed = true;
+            let resultsHtml = '<ul class="rule-list">';
+            
+            for (const req of requests) {
+                const validation = validateLeave(req);
+                if (!validation.passed) allPassed = false;
+                resultsHtml += `<li class="rule-item ${validation.passed ? 'passed' : 'failed'}">
+                    ${req.date}: ${validation.passed ? '✅' : '❌'} ${validation.message}
+                </li>`;
+            }
+            resultsHtml += '</ul>';
+
+            if (!allPassed) {
+                feedback.className = 'validation-feedback error';
+                feedback.innerHTML = `<strong>Validation Failed:</strong>${resultsHtml}`;
+                return;
+            }
+
+            // Submit all
+            try {
+                for (const req of requests) {
+                    await fetch('/api/leave', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(req)
+                    });
+                }
+                
+                feedback.className = 'validation-feedback success';
+                feedback.innerHTML = '✅ All requests submitted successfully!';
+                
+                // Reset form
+                selectedALDates = {};
+                selectedELDates = [];
+                if (type === 'AL') renderALDateSelector();
+                if (type === 'EL') renderELDateSelector();
+                
+                fetchData();
+            } catch (err) {
+                alert('Error submitting requests');
+                console.error(err);
+            }
+        }
+
+        function validateLeave(req) {
+            // 1. Clash Check
+            const clash = leaveRecords.find(r => r.colleague === req.colleague && r.date === req.date);
+            if (clash) return { passed: false, message: 'You already have a leave on this day.' };
+
+            // 2. Buddy Rule (Jack/Rita, Jenny/Holly)
+            const buddies = { 'Jack': 'Rita', 'Rita': 'Jack', 'Jenny': 'Holly', 'Holly': 'Jenny' };
+            const buddy = buddies[req.colleague];
+            if (buddy) {
+                const buddyLeave = leaveRecords.find(r => r.colleague === buddy && r.date === req.date);
+                if (buddyLeave) return { passed: false, message: `Buddy Rule: ${buddy} is also away on this day.` };
+            }
+
+            // 3. Daily Limit (Max 2 people)
+            const dailyCount = leaveRecords.filter(r => r.date === req.date).length;
+            if (dailyCount >= 2) return { passed: false, message: 'Daily Limit: Maximum 2 people can be away.' };
+
+            // 4. Birthday/Exam Specific Rules
+            if (req.type === 'Birthday' || req.type === 'Exam') {
+                // Same rules apply as per user request
+            }
+
+            return { passed: true, message: 'Passed all rules.' };
+        }
+
+        // --- Admin & History ---
+        function initializeYearMonthSelectors() {
+            const yearSelect = document.getElementById('adminYearFilter');
+            const monthSelect = document.getElementById('adminMonthFilter');
+            if (!yearSelect || !monthSelect) return;
+
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            }
+            yearSelect.value = currentYear;
+
+            monthSelect.innerHTML = '';
+            for (let m = 0; m < 12; m++) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = new Date(2000, m, 1).toLocaleString('default', { month: 'long' });
+                monthSelect.appendChild(opt);
+            }
+            monthSelect.value = new Date().getMonth();
+        }
+
+        function updateAdminTab() {
+            const year = parseInt(document.getElementById('adminYearFilter').value);
+            const month = parseInt(document.getElementById('adminMonthFilter').value);
+            const container = document.getElementById('allLeavesList');
+            if (!container) return;
+
+            const filtered = leaveRecords.filter(r => {
+                const d = new Date(r.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p style="color: var(--muted); padding: 20px;">${translations[currentLanguage].noLeaves}</p>`;
+                return;
+            }
+
+            let html = `<table><thead><tr>
+                <th>Date</th><th>Colleague</th><th>Type</th><th>Actions</th>
+            </tr></thead><tbody>`;
+            
+            filtered.forEach(r => {
+                html += `<tr>
+                    <td>${r.date}</td>
+                    <td><strong>${r.colleague}</strong></td>
+                    <td><span class="badge-${r.type.toLowerCase()}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.85em;">${r.type}${r.halfDay ? ' (' + r.halfDay.toUpperCase() + ')' : ''}</span></td>
+                    <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8em;" onclick='openEditModal(${JSON.stringify(r)})'>Edit</button></td>
+                </tr>`;
             });
-            document.getElementById(`halfDay_${dateISO}_${halfDay}`).classList.add('active');
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
-        function updateELSelection() {
-            const checkboxes = document.querySelectorAll('#elDateDropdown input[type="checkbox"]');
-            selectedELDates = Array.from(checkboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-            validateAndShowFeedback();
+        function initializeMyLeavesYearFilter() {
+            const select = document.getElementById('myLeavesYearFilter');
+            if (!select) return;
+            const currentYear = new Date().getFullYear();
+            select.innerHTML = '';
+            for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                select.appendChild(opt);
+            }
+            select.value = currentYear;
         }
 
+        function displayMyHistory() {
+            const colleague = document.getElementById('myLeavesColleague').value;
+            const year = parseInt(document.getElementById('myLeavesYearFilter').value);
+            const container = document.getElementById('myHistoryList');
+            if (!container) return;
+
+            if (!colleague) {
+                container.innerHTML = '<p style="color: var(--muted); padding: 20px;">Please select a colleague to view history.</p>';
+                return;
+            }
+
+            const filtered = leaveRecords.filter(r => {
+                const d = new Date(r.date);
+                return r.colleague === colleague && d.getFullYear() === year;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="color: var(--muted); padding: 20px;">No leave records found for this year.</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Date</th><th>Type</th><th>Actions</th></tr></thead><tbody>';
+            filtered.forEach(r => {
+                html += `<tr>
+                    <td>${r.date}</td>
+                    <td>${r.type}${r.halfDay ? ' (' + r.halfDay.toUpperCase() + ')' : ''}</td>
+                    <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8em;" onclick='openEditModal(${JSON.stringify(r)})'>Edit</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function updateALBalanceDisplay() {
+            const colleague = document.getElementById('myLeavesColleague').value;
+            const year = parseInt(document.getElementById('myLeavesYearFilter').value);
+            const balanceEl = document.getElementById('alBalanceValue');
+            const usedEl = document.getElementById('labelUsedAL');
+            
+            if (!colleague || !balanceEl) return;
+
+            const used = leaveRecords.filter(r => {
+                const d = new Date(r.date);
+                return r.colleague === colleague && r.type === 'AL' && d.getFullYear() === year;
+            }).reduce((acc, r) => acc + (r.halfDay ? 0.5 : 1.0), 0);
+
+            const total = 15.0;
+            balanceEl.textContent = (total - used).toFixed(1);
+            usedEl.textContent = (translations[currentLanguage].labelUsedAL || 'Used: ') + used.toFixed(1);
+        }
+
+        // --- Event Management ---
+        async function addEvent() {
+            const date = document.getElementById('eventDate').value;
+            const name = document.getElementById('eventName').value;
+            if (!date || !name) return alert('Please fill in all fields');
+
+            try {
+                await fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, name })
+                });
+                document.getElementById('eventName').value = '';
+                fetchData();
+            } catch (err) { console.error(err); }
+        }
+
+        function displayEvents() {
+            const container = document.getElementById('eventsList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const sorted = [...events].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (sorted.length === 0) {
+                container.innerHTML = '<p style="color: var(--muted);">No events scheduled.</p>';
+                return;
+            }
+
+            sorted.forEach(e => {
+                const item = document.createElement('div');
+                item.style.padding = '12px';
+                item.style.borderBottom = '1px solid var(--border)';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600;">${e.name}</div>
+                        <div style="font-size: 0.8em; color: var(--muted);">${e.date}</div>
+                    </div>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8em;" onclick='openEditEventModal(${JSON.stringify(e)})'>Edit</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- Modals ---
+        let currentEditingLeave = null;
+        function openEditModal(record) {
+            currentEditingLeave = record;
+            document.getElementById('editColleague').innerHTML = `<option>${record.colleague}</option>`;
+            document.getElementById('editType').innerHTML = `<option>${record.type}</option>`;
+            document.getElementById('editDate').value = record.date;
+            
+            const halfDaySection = document.getElementById('editHalfDaySection');
+            if (record.type === 'AL' || record.type === 'EL') {
+                halfDaySection.style.display = 'block';
+                setEditHalfDay(record.halfDay || 'full');
+            } else {
+                halfDaySection.style.display = 'none';
+            }
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        let editHalfDayValue = 'full';
+        function setEditHalfDay(val) {
+            editHalfDayValue = val;
+            document.querySelectorAll('#editHalfDaySection .half-day-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `editHalfDay_${val}`);
+            });
+        }
+
+        async function saveEdit() {
+            const newDate = document.getElementById('editDate').value;
+            const updated = { 
+                ...currentEditingLeave, 
+                date: newDate, 
+                halfDay: editHalfDayValue === 'full' ? null : editHalfDayValue 
+            };
+
+            try {
+                await fetch(`/api/leave/${currentEditingLeave.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated)
+                });
+                closeEditModal();
+                fetchData();
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteLeaveFromModal() {
+            if (!confirm('Are you sure you want to delete this leave?')) return;
+            try {
+                await fetch(`/api/leave/${currentEditingLeave.id}`, { method: 'DELETE' });
+                closeEditModal();
+                fetchData();
+            } catch (err) { console.error(err); }
+        }
+
+        let currentEditingEvent = null;
+        function openEditEventModal(event) {
+            currentEditingEvent = event;
+            document.getElementById('editEventDate').value = event.date;
+            document.getElementById('editEventName').value = event.name;
+            document.getElementById('editEventModal').style.display = 'block';
+        }
+
+        function closeEditEventModal() {
+            document.getElementById('editEventModal').style.display = 'none';
+        }
+
+        async function saveEditEvent() {
+            const date = document.getElementById('editEventDate').value;
+            const name = document.getElementById('editEventName').value;
+            try {
+                await fetch(`/api/event/${currentEditingEvent.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, name })
+                });
+                closeEditEventModal();
+                fetchData();
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteEventFromModal() {
+            if (!confirm('Are you sure you want to delete this event?')) return;
+            try {
+                await fetch(`/api/event/${currentEditingEvent.id}`, { method: 'DELETE' });
+                closeEditEventModal();
+                fetchData();
+            } catch (err) { console.error(err); }
+        }
+
+        // Quick Add Modal
+        let quickAddDate = '';
+        function openQuickAddModal(date) {
+            quickAddDate = date;
+            document.getElementById('quickAddModal').style.display = 'block';
+            populateColleagueSelects();
+        }
+
+        function closeQuickAddModal() {
+            document.getElementById('quickAddModal').style.display = 'none';
+        }
+
+        let quickAddHalfDay = 'full';
+        function setQuickAddHalfDay(val) {
+            quickAddHalfDay = val;
+            document.querySelectorAll('#quickAddHalfDaySection .half-day-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `quickAddHalfDay_${val}`);
+            });
+        }
+
+        function toggleQuickAddForm() {
+            const type = document.getElementById('quickAddType').value;
+            document.getElementById('quickAddHalfDaySection').style.display = (type === 'AL' || type === 'EL') ? 'block' : 'none';
+            document.getElementById('quickAddEventSection').style.display = type === 'Event' ? 'block' : 'none';
+        }
+
+        async function saveQuickAdd() {
+            const colleague = document.getElementById('quickAddColleague').value;
+            const type = document.getElementById('quickAddType').value;
+            
+            if (type === 'Event') {
+                const name = document.getElementById('quickAddEventName').value;
+                if (!name) return alert('Please enter event name');
+                await fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: quickAddDate, name })
+                });
+            } else {
+                if (!colleague) return alert('Please select colleague');
+                const req = { 
+                    colleague, type, date: quickAddDate, 
+                    halfDay: quickAddHalfDay === 'full' ? null : quickAddHalfDay 
+                };
+                const validation = validateLeave(req);
+                if (!validation.passed) return alert(validation.message);
+                
+                await fetch('/api/leave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(req)
+                });
+            }
+            closeQuickAddModal();
+            fetchData();
+        }
+
+        // --- Utilities ---
         function getTodayISO() {
             const d = new Date();
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         }
 
-        function formatDate(iso) {
-            const [y, m, d] = iso.split('-').map(Number);
-            const date = new Date(y, m - 1, d);
-            return date.toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-        }
-
-        function dateToISO(date) {
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        }
-
-        function isoToDate(iso) {
-            const [y, m, d] = iso.split('-').map(Number);
-            return new Date(y, m - 1, d);
-        }
-
-        function initializeMyLeavesYearFilter() {
-            const yearFilter = document.getElementById('myLeavesYearFilter');
-            if (!yearFilter) return;
-            
-            const currentYear = new Date().getFullYear();
-            yearFilter.innerHTML = '';
-            
-            // Show current year, previous 5 years, and next year
-            for (let year = currentYear - 5; year <= currentYear + 1; year++) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                if (year === currentYear) option.selected = true;
-                yearFilter.appendChild(option);
-            }
-        }
-
-        function validateLeave(colleague, type, dates, halfDay = null) {
-            const rules = [];
-            let passed = true;
-
-            // Rule 1: No more than 2 people on AL/EL same day
-            dates.forEach(date => {
-                const othersOnAL = leaveRecords.filter(r => r.date === date && r.colleague !== colleague && (r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave')).length;
-                const rule1 = {
-                    rule: currentLanguage === 'zh' ? `日期 ${date}: 同一天最多只能有 2 人請假 (目前已有 ${othersOnAL} 人)` : `Date ${date}: Max 2 people on AL per day (currently ${othersOnAL})`,
-                    passed: othersOnAL < 2
-                };
-                rules.push(rule1);
-                if (!rule1.passed) passed = false;
-            });
-
-            // Rule 2: Buddy System (Jenny/Holly, Aaron/Varina, Rita/Jack)
-            const buddies = {
-                'Jenny': 'Holly', 'Holly': 'Jenny',
-                'Aaron': 'Varina', 'Varina': 'Aaron',
-                'Rita': 'Jack', 'Jack': 'Rita'
-            };
-            const buddy = buddies[colleague];
-            dates.forEach(date => {
-                const buddyOnAL = leaveRecords.some(r => r.date === date && r.colleague === buddy && (r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave'));
-                const rule2 = {
-                    rule: currentLanguage === 'zh' ? `日期 ${date}: 您的夥伴 ${buddy} 當天已請假` : `Date ${date}: Your buddy ${buddy} is already on AL`,
-                    passed: !buddyOnAL
-                };
-                rules.push(rule2);
-                if (!rule2.passed) passed = false;
-            });
-
-            // Rule 3: No AL on Monday/Friday (unless special)
-            dates.forEach(date => {
-                const day = isoToDate(date).getDay();
-                if (day === 1 || day === 5) {
-                    const rule3 = {
-                        rule: currentLanguage === 'zh' ? `日期 ${date}: 週一和週五通常不允許請年假` : `Date ${date}: AL usually not allowed on Mon/Fri`,
-                        passed: false,
-                        warning: true
-                    };
-                    rules.push(rule3);
-                    // We don't set passed = false here as it's a warning/soft rule in some teams
-                }
-            });
-
-            return { passed, rules };
-        }
-
-        function validateAndShowFeedback() {
-            const colleague = document.getElementById('colleague').value;
-            const type = document.getElementById('type').value;
-            const feedback = document.getElementById('validationFeedback');
-            const msg = document.getElementById('validationMsg');
-            const list = document.getElementById('ruleList');
-
-            if (!colleague) {
-                feedback.style.display = 'none';
-                return;
-            }
-
-            let dates = [];
-            if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
-                dates = Object.keys(selectedALDates);
-            } else {
-                dates = selectedELDates;
-            }
-
-            if (dates.length === 0) {
-                feedback.style.display = 'none';
-                return;
-            }
-
-            const result = validateLeave(colleague, type, dates);
-            feedback.style.display = 'block';
-            feedback.className = `validation-feedback ${result.passed ? 'success' : 'error'}`;
-            msg.textContent = result.passed ? 
-                (currentLanguage === 'zh' ? '✅ 驗證通過' : '✅ Validation Passed') : 
-                (currentLanguage === 'zh' ? '❌ 違反規則' : '❌ Rule Violation');
-
-            list.innerHTML = '';
-            result.rules.forEach(r => {
-                const li = document.createElement('li');
-                li.className = `rule-item ${r.passed ? 'passed' : 'failed'}`;
-                li.textContent = (r.passed ? '✓ ' : '✗ ') + r.rule;
-                list.appendChild(li);
-            });
-        }
-
-        function submitLeave() {
-            const colleague = document.getElementById('colleague').value;
-            const type = document.getElementById('type').value;
-            
-            if (!colleague) {
-                alert(currentLanguage === 'zh' ? '請選擇同事' : 'Please select colleague');
-                return;
-            }
-
-            let dates = [];
-            if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
-                dates = Object.keys(selectedALDates);
-            } else {
-                dates = selectedELDates;
-            }
-
-            if (dates.length === 0) {
-                alert(currentLanguage === 'zh' ? '請選擇日期' : 'Please select dates');
-                return;
-            }
-
-            const validation = validateLeave(colleague, type, dates);
-            if (!validation.passed) {
-                const confirmMsg = currentLanguage === 'zh' ? 
-                    '您的申請違反了一些規則。確定要強制提交嗎？' : 
-                    'Your request violates some rules. Do you want to submit anyway?';
-                if (!confirm(confirmMsg)) return;
-            }
-
-            const promises = dates.map(date => {
-                const halfDay = (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') ? selectedALDates[date] : null;
-                return fetch('/api/leave', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ colleague, type, date, halfDay })
-                });
-            });
-
-            Promise.all(promises)
-                .then(() => {
-                    alert(currentLanguage === 'zh' ? '申請已提交！' : 'Request submitted!');
-                    // Reset form
-                    if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
-                        document.getElementById('alMonth').value = '';
-                        document.getElementById('alDateSelector').innerHTML = '';
-                        selectedALDates = {};
-                    } else {
-                        document.getElementById('elMonth').value = '';
-                        document.getElementById('elDateDropdown').innerHTML = '';
-                        selectedELDates = [];
-                    }
-                    fetchData();
-                })
-                .catch(err => alert('Error: ' + err.message));
-        }
-
-        function displayMyHistory() {
-            const colleague = document.getElementById('myLeavesColleague').value;
-            const yearFilter = document.getElementById('myLeavesYearFilter');
-            const list = document.getElementById('myHistoryList');
-            
-            if (!colleague || !list || !yearFilter) return;
-            
-            const selectedYear = parseInt(yearFilter.value);
-            const myRecords = leaveRecords
-                .filter(r => r.colleague === colleague)
-                .filter(r => {
-                    const year = parseInt(r.date.split('-')[0]);
-                    return year === selectedYear;
-                })
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            if (myRecords.length === 0) {
-                list.innerHTML = `<p style="color: var(--muted);">${currentLanguage === 'zh' ? '無紀錄' : 'No records found'}</p>`;
-                return;
-            }
-
-            let html = '';
-            myRecords.forEach(r => {
-                const halfDayText = r.halfDay && r.halfDay !== 'full' ? ` (${r.halfDay.toUpperCase()})` : '';
-                html += `
-                    <div class="colleague-card" onclick="editLeave('${r.id}')" style="cursor: pointer;">
-                        <div class="colleague-avatar" style="background-color: ${COLLEAGUE_COLORS[r.colleague]}">${r.type.charAt(0)}</div>
-                        <div class="colleague-info">
-                            <h4>${r.type}${halfDayText}</h4>
-                            <p>${formatDate(r.date)}</p>
-                        </div>
-                    </div>
-                `;
-            });
-            list.innerHTML = html;
-        }
-
-        function updateALBalanceDisplay() {
-            const colleague = document.getElementById('myLeavesColleague').value;
-            if (!colleague) return;
-
-            const currentYear = new Date().getFullYear();
-            const usedAL = leaveRecords.filter(r => 
-                r.colleague === colleague && 
-                (r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave') &&
-                r.date.startsWith(currentYear.toString())
-            ).reduce((acc, r) => {
-                return acc + (r.halfDay === 'am' || r.halfDay === 'pm' ? 0.5 : 1.0);
-            }, 0);
-
-            const totalEntitlement = 15.0;
-            const balance = totalEntitlement - usedAL;
-
-            document.getElementById('alBalanceValue').textContent = balance.toFixed(1);
-            document.getElementById('labelUsedAL').textContent = (currentLanguage === 'zh' ? '已使用: ' : 'Used: ') + usedAL.toFixed(1);
-            document.getElementById('labelTotalEntitlement').textContent = (currentLanguage === 'zh' ? '總額度: ' : 'Total Entitlement: ') + totalEntitlement.toFixed(1);
-            
-            displayMyHistory();
-        }
-
-        let editingLeaveId = null;
-        let editingHalfDay = null;
-
-        function editLeave(id) {
-            const record = leaveRecords.find(r => r.id === id);
-            if (!record) return;
-
-            editingLeaveId = id;
-            editingHalfDay = record.halfDay || 'full';
-
-            const colleagueSelect = document.getElementById('editColleague');
-            colleagueSelect.innerHTML = `<option value="${record.colleague}">${record.colleague}</option>`;
-            
-            const typeSelect = document.getElementById('editType');
-            typeSelect.innerHTML = `<option value="${record.type}">${record.type}</option>`;
-            
-            document.getElementById('editDate').value = record.date;
-            
-            const halfDaySection = document.getElementById('editHalfDaySection');
-            if (record.type === 'AL' || record.type === 'Birthday Leave' || record.type === 'Exam Leave') {
-                halfDaySection.style.display = 'block';
-                updateEditHalfDayButtons();
-            } else {
-                halfDaySection.style.display = 'none';
-            }
-
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function setEditHalfDay(value) {
-            editingHalfDay = value;
-            updateEditHalfDayButtons();
-        }
-
-        function updateEditHalfDayButtons() {
-            document.querySelectorAll('#editHalfDaySection .half-day-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(`editHalfDay_${editingHalfDay}`).classList.add('active');
-        }
-
-        function saveEdit() {
-            if (!editingLeaveId) return;
-            
-            const newDate = document.getElementById('editDate').value;
-            const halfDay = editingHalfDay;
-            const record = leaveRecords.find(r => r.id === editingLeaveId);
-            const colleague = record.colleague;
-            const type = record.type;
-
-            if (!newDate) {
-                alert('Please select a date');
-                return;
-            }
-
-            // Step 1: Delete old record
-            fetch(`/api/leave/${editingLeaveId}`, { method: 'DELETE' })
-                .then(res => {
-                    if (!res.ok) throw new Error('Delete failed: ' + res.status);
-                    console.log('Old record deleted');
-                    return res.json();
-                })
-                .then(() => {
-                    // Step 2: Add new record
-                    return fetch('/api/leave', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            colleague: colleague,
-                            type: type,
-                            date: newDate,
-                            halfDay: halfDay
-                        })
-                    });
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Add failed: ' + res.status);
-                    console.log('New record added');
-                    return res.json();
-                })
-                .then(newRecord => {
-                    console.log('Edit successful:', newRecord);
-                    closeEditModal();
-                    alert('Leave request updated successfully!');
-                })
-                .catch(err => {
-                    console.error('Error in edit flow:', err);
-                    alert('Error: ' + err.message);
-                });
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-            editingLeaveId = null;
-            editingHalfDay = null;
-        }
-
-        function deleteLeaveFromModal() {
-            const msg = currentLanguage === 'zh' ? '確定要刪除此請假申請嗎？' : 'Delete this leave request?';
-            if (editingLeaveId && confirm(msg)) {
-                deleteLeave(editingLeaveId);
-                closeEditModal();
-            }
-        }
-
-        function deleteLeave(id) {
-            fetch(`/api/leave/${id}`, { method: 'DELETE' })
-                .catch(err => console.error('Error deleting leave:', err));
-        }
-
-        let quickAddDate = null;
-        let quickAddCurrentType = null;
-        let quickAddHalfDay = 'full';
-
-        function openQuickAddModal(dateISO) {
-            quickAddDate = dateISO;
-            quickAddCurrentType = null;
-            quickAddHalfDay = 'full';
-            document.getElementById('quickAddDate').textContent = formatDate(dateISO);
-            document.getElementById('quickAddForm').style.display = 'none';
-            document.getElementById('quickAddModal').classList.add('active');
-        }
-
-        function closeQuickAddModal() {
-            document.getElementById('quickAddModal').classList.remove('active');
-            quickAddDate = null;
-            quickAddCurrentType = null;
-        }
-
-        function quickAddType(type) {
-            quickAddCurrentType = type;
-            document.getElementById('quickAddForm').style.display = 'block';
-            document.getElementById('quickAddHalfDaySection').style.display = (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') ? 'block' : 'none';
-            document.getElementById('quickAddEventNameSection').style.display = type === 'EVENT' ? 'block' : 'none';
-            document.getElementById('quickAddColleague').style.display = type === 'EVENT' ? 'none' : 'block';
-            document.getElementById('quickAddLabelColleague').style.display = type === 'EVENT' ? 'none' : 'block';
-            
-            if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
-                updateQuickAddHalfDayButtons();
-            }
-        }
-
-        function setQuickAddHalfDay(value) {
-            quickAddHalfDay = value;
-            updateQuickAddHalfDayButtons();
-        }
-
-        function updateQuickAddHalfDayButtons() {
-            const fullBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(1)');
-            const amBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(2)');
-            const pmBtn = document.querySelector('#quickAddHalfDaySection button:nth-child(3)');
-            
-            [fullBtn, amBtn, pmBtn].forEach(btn => {
-                btn.style.backgroundColor = '';
-                btn.style.color = '';
-            });
-            
-            if (quickAddHalfDay === 'full') fullBtn.style.backgroundColor = 'var(--primary)', fullBtn.style.color = 'white';
-            if (quickAddHalfDay === 'am') amBtn.style.backgroundColor = 'var(--primary)', amBtn.style.color = 'white';
-            if (quickAddHalfDay === 'pm') pmBtn.style.backgroundColor = 'var(--primary)', pmBtn.style.color = 'white';
-        }
-
-        function saveQuickAdd() {
-            if (!quickAddDate || !quickAddCurrentType) {
-                alert(currentLanguage === 'zh' ? '請選擇類型' : 'Please select a type');
-                return;
-            }
-
-            // For AL/EL, fetch latest data before validation
-            if (quickAddCurrentType !== 'EVENT') {
-                fetch('/api/data')
-                    .then(res => res.json())
-                    .then(data => {
-                        leaveRecords = data.leaveRecords || [];
-                        proceedWithQuickAdd();
-                    })
-                    .catch(err => {
-                        console.error('Error fetching leave records:', err);
-                        proceedWithQuickAdd();
-                    });
-                return;
-            }
-
-            if (quickAddCurrentType === 'EVENT') {
-                const eventName = document.getElementById('quickAddEventName').value;
-                if (!eventName) {
-                    alert(currentLanguage === 'zh' ? '請輸入事件名稱' : 'Please enter event name');
-                    return;
-                }
-                
-                const event = {
-                    id: `event-${Date.now()}`,
-                    date: quickAddDate,
-                    name: eventName
-                };
-                
-                fetch('/api/event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(event)
-                })
-                .then(res => res.json())
-                .then(() => {
-                    closeQuickAddModal();
-                    fetchData();
-                })
-                .catch(err => console.error('Error adding event:', err));
-            }
-        }
-        
-        function proceedWithQuickAdd() {
-            const colleague = document.getElementById('quickAddColleague').value;
-            if (!colleague) {
-                alert(currentLanguage === 'zh' ? '請選擇同事' : 'Please select colleague');
-                return;
-            }
-            
-            // Validate using the same rules as the main form
-            const validation = validateLeave(colleague, quickAddCurrentType, [quickAddDate], (quickAddCurrentType === 'AL' || quickAddCurrentType === 'Birthday Leave' || quickAddCurrentType === 'Exam Leave') ? quickAddHalfDay : null);
-            
-            if (!validation.passed) {
-                const failedRules = validation.rules.filter(r => !r.passed).map(r => r.rule).join('\n');
-                alert('Cannot add leave:\n\n' + failedRules);
-                return;
-            }
-            
-            if (quickAddCurrentType === 'EL') {
-                const alOnDate = leaveRecords.some(r => r.date === quickAddDate && (r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave') && r.colleague === colleague);
-                if (alOnDate) {
-                    const msg = currentLanguage === 'zh' ? '無法提交早退 - 您當天已有年假。' : 'Cannot submit EL - you already have AL on this date.';
-                    alert(msg);
-                    return;
-                }
-            }
-            
-            const leave = {
-                id: `leave-${Date.now()}`,
-                date: quickAddDate,
-                colleague,
-                type: quickAddCurrentType,
-                halfDay: (quickAddCurrentType === 'AL' || quickAddCurrentType === 'Birthday Leave' || quickAddCurrentType === 'Exam Leave') ? quickAddHalfDay : null,
-                createdAt: new Date().toISOString()
-            };
-            
-            fetch('/api/leave', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(leave)
-            })
-            .then(res => res.json())
-            .then(() => {
-                closeQuickAddModal();
-                fetchData();
-            })
-            .catch(err => console.error('Error adding leave:', err));
-        }
-
-        function initAdminFilters() {
-            const yearSelect = document.getElementById('adminYearFilter');
-            const monthSelect = document.getElementById('adminMonthFilter');
-            if (!yearSelect || !monthSelect) return;
-            if (yearSelect.options.length > 0) return; // Already initialized
-
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            
-            // Years
-            for (let y = 2024; y <= currentYear + 1; y++) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = y;
-                if (y === currentYear) opt.selected = true;
-                yearSelect.appendChild(opt);
-            }
-
-            // Months
-            const monthNames = currentLanguage === 'zh' ? 
-                ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] :
-                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            
-            monthNames.forEach((name, i) => {
-                const opt = document.createElement('option');
-                opt.value = i + 1;
-                opt.textContent = name;
-                if (i === now.getMonth()) opt.selected = true;
-                monthSelect.appendChild(opt);
-            });
-        }
-
-        function updateAdminTab() {
-            const yearEl = document.getElementById('adminYearFilter');
-            const monthEl = document.getElementById('adminMonthFilter');
-            if (!yearEl || !monthEl) return;
-            
-            initAdminFilters();
-            
-            const selectedYear = parseInt(yearEl.value);
-            const selectedMonth = parseInt(monthEl.value);
-            const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleDateString(currentLanguage === 'zh' ? 'zh-HK' : 'en-HK', { month: 'long', year: 'numeric' });
-
-            // Filter leaves for selected month only
-            const filteredLeaves = leaveRecords.filter(r => {
-                const [year, month] = r.date.split('-');
-                return parseInt(year) === selectedYear && parseInt(month) === selectedMonth;
-            });
-
-            const t = translations[currentLanguage];
-            let allLeavesHtml = '';
-            
-            if (filteredLeaves.length === 0) {
-                allLeavesHtml = `<p style="color: var(--muted);">${t.noLeaves}</p>`;
-            } else {
-                // Group by type
-                const elLeaves = filteredLeaves.filter(r => r.type === 'EL');
-                const alLeaves = filteredLeaves.filter(r => r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave');
-                
-                // EL section
-                if (elLeaves.length > 0) {
-                    allLeavesHtml += '<div style="margin-bottom: 20px;"><h4 style="color: var(--warning); margin-bottom: 10px;">EL:</h4>';
-                    const elByColleague = {};
-                    elLeaves.forEach(leave => {
-                        if (!elByColleague[leave.colleague]) {
-                            elByColleague[leave.colleague] = [];
-                        }
-                        const day = parseInt(leave.date.split('-')[2]);
-                        elByColleague[leave.colleague].push(day);
-                    });
-                    
-                    Object.entries(elByColleague).forEach(([colleague, days]) => {
-                        const sortedDays = days.sort((a, b) => a - b);
-                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${sortedDays.join(', ')}</div>`;
-                    });
-                    allLeavesHtml += '</div>';
-                }
-                
-                // AL section
-                if (alLeaves.length > 0) {
-                    allLeavesHtml += '<div><h4 style="color: var(--primary); margin-bottom: 10px;">AL:</h4>';
-                    const alByColleague = {};
-                    alLeaves.forEach(leave => {
-                        if (!alByColleague[leave.colleague]) {
-                            alByColleague[leave.colleague] = [];
-                        }
-                        const day = parseInt(leave.date.split('-')[2]);
-                        const suffix = leave.halfDay && leave.halfDay !== 'full' ? ` (${leave.halfDay.toUpperCase()})` : '';
-                        const typeLabel = leave.type === 'AL' ? '' : ` [${leave.type}]`;
-                        alByColleague[leave.colleague].push({ day, suffix, typeLabel });
-                    });
-                    
-                    Object.entries(alByColleague).forEach(([colleague, items]) => {
-                        const sortedItems = items.sort((a, b) => a.day - b.day);
-                        const displayDays = sortedItems.map(item => item.day + item.suffix + item.typeLabel).join(', ');
-                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${displayDays}</div>`;
-                    });
-                    allLeavesHtml += '</div>';
-                }
-            }
-            
-            // Update title with current month
-            document.getElementById('titleAllLeaves').textContent = (currentLanguage === 'zh' ? '📋 所有請假申請 - ' : '📋 All Leave Requests - ') + monthName;
-            document.getElementById('allLeavesList').innerHTML = allLeavesHtml;
-            
-            // Update team summary title with current month
-            const teamSummaryTitle = document.querySelector('.card:has(#teamSummary) h3');
-            if (teamSummaryTitle) {
-                teamSummaryTitle.textContent = (currentLanguage === 'zh' ? '👥 團隊請假摘要 - ' : '👥 Team Leave Summary - ') + monthName;
-            }
-        }
-
         async function syncToMondayNow() {
             const btn = document.getElementById('btnSyncMonday');
-            const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '⏳ Syncing...';
-            
+            btn.textContent = 'Syncing...';
             try {
-                const response = await fetch('/api/sync-monday-all', { method: 'POST' });
-                const result = await response.json();
-                alert(result.message);
-            } catch (err) {
-                console.error('Sync error:', err);
-                alert('Sync failed: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
+                await fetch('/api/sync-monday', { method: 'POST' });
+                alert('Sync completed successfully!');
+            } catch (err) { alert('Sync failed'); }
+            btn.disabled = false;
+            btn.textContent = translations[currentLanguage].btnSyncMonday;
         }
 
         function exportXLSX() {
-            if (leaveRecords.length === 0) {
-                alert('No records to export');
-                return;
-            }
-
-            // Prepare data with Year, Month, Type, AM/PM
-            const data = leaveRecords.sort((a, b) => new Date(a.date) - new Date(b.date)).map(r => {
-                const [y, m, d] = r.date.split('-');
-                const dateObj = new Date(r.date + 'T00:00:00');
-                const dayOfWeek = dateObj.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                const isHoliday = hkHolidays[r.date];
-                
-                let status = 'Working Day';
-                if (isWeekend) status = 'Weekend';
-                if (isHoliday) status = `Holiday (${isHoliday})`;
-
-                // Normalize halfDay display
-                let timeSlot = 'Full Day';
-                const h = r.halfDay ? r.halfDay.toLowerCase() : 'full';
-                if (h === 'am') timeSlot = 'AM';
-                else if (h === 'pm') timeSlot = 'PM';
-                else timeSlot = 'Full Day';
-
-                let dayValue = 0;
-                if (!isWeekend && !isHoliday) {
-                    // Force numeric value for Excel
-                    dayValue = (timeSlot === 'AM' || timeSlot === 'PM') ? 0.5 : 1.0;
-                }
-
-                return {
-                    'Year': parseInt(y),
-                    'Month': parseInt(m),
-                    'Date': r.date,
-                    'Colleague': r.colleague,
-                    'Leave Type': r.type,
-                    'Time Slot': timeSlot,
-                    'Day Value': Number(dayValue),
-                    'Status': status,
-                    'Created At': new Date(r.createdAt).toLocaleString()
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(data);
+            const ws = XLSX.utils.json_to_sheet(leaveRecords);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Leave Records");
-            
-            // Auto-size columns
-            const colWidths = Object.keys(data[0] || {}).map(key => ({ wch: Math.max(key.length, 15) }));
-            ws['!cols'] = colWidths;
-
-            XLSX.writeFile(wb, `CM-Binary-Leave-Records-${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Leaves");
+            XLSX.writeFile(wb, `Leave_Export_${getTodayISO()}.xlsx`);
         }
 
         function exportCSV() {
-            if (leaveRecords.length === 0) {
-                alert('No records to export');
-                return;
-            }
-
-            let csv = 'Year,Month,Date,Colleague,Leave Type,Time Slot,Day Value,Status,Created At\n';
-            leaveRecords.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(r => {
-                const [y, m] = r.date.split('-');
-                const dateObj = new Date(r.date + 'T00:00:00');
-                const dayOfWeek = dateObj.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                const isHoliday = hkHolidays[r.date];
-                
-                let status = 'Working Day';
-                if (isWeekend) status = 'Weekend';
-                if (isHoliday) status = `Holiday (${isHoliday})`;
-
-                let dayValue = 0;
-                if (!isWeekend && !isHoliday) {
-                    dayValue = (r.halfDay === 'am' || r.halfDay === 'pm') ? 0.5 : 1;
-                }
-
-                // Normalize halfDay display
-                let timeSlot = 'Full Day';
-                if (r.halfDay === 'am') timeSlot = 'AM';
-                if (r.halfDay === 'pm') timeSlot = 'PM';
-                if (!r.halfDay || r.halfDay.toLowerCase() === 'full') timeSlot = 'Full Day';
-                
-                csv += `${y},${m},${r.date},"${r.colleague}",${r.type},${timeSlot},${dayValue},"${status}",${new Date(r.createdAt).toLocaleString()}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const headers = ['colleague', 'type', 'date', 'halfDay'];
+            const rows = leaveRecords.map(r => headers.map(h => r[h] || '').join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `leave-records-${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `Leave_Export_${getTodayISO()}.csv`;
             a.click();
         }
     </script>
-            </div> <!-- End of container -->
-        </div> <!-- End of page-container -->
-    </div> <!-- End of main-content -->
 </body>
 </html>
