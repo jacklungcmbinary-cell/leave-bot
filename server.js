@@ -203,32 +203,45 @@ app.post('/api/monday-webhook', async (req, res) => {
   }
 
   const event = req.body.event;
-  if (!event) return res.sendStatus(200);
+  if (!event) {
+    console.log('Webhook received but no event data found in body:', JSON.stringify(req.body));
+    return res.sendStatus(200);
+  }
 
-  console.log(`Webhook received: ${event.type} for pulseId: ${event.pulseId}`);
+  console.log(`Webhook received: ${event.type} for pulseId: ${event.pulseId || event.itemId}`);
+  // Log full event for debugging in Render logs
+  console.log('Full Webhook Event Data:', JSON.stringify(event));
 
   try {
+    const pulseId = (event.pulseId || event.itemId || event.pulse_id)?.toString();
+    
+    if (!pulseId) {
+      console.log('Could not determine pulseId from event');
+      return res.sendStatus(200);
+    }
+
     // Handle Column Value Changes (e.g., Date change)
     if (event.type === 'update_column_value' || event.type === 'change_column_value') {
       // Check if the changed column is our date column (date4)
-      if (event.column_id === 'date4') {
+      if (event.column_id === 'date4' || event.columnId === 'date4') {
         let newDate = null;
         
-        // Monday.com sends date in different formats depending on the event
+        // Try multiple ways to extract the date
         if (event.value && event.value.date) {
           newDate = event.value.date;
+        } else if (event.column_values && event.column_values.date4) {
+          newDate = event.column_values.date4.date || event.column_values.date4.text;
         } else if (event.text_body) {
-          // Fallback to text body if date object is missing
           newDate = event.text_body;
         }
 
         if (newDate) {
-          console.log(`Updating date to: ${newDate} for pulseId: ${event.pulseId}`);
-          const pulseIdStr = event.pulseId.toString();
+          console.log(`Updating date to: ${newDate} for pulseId: ${pulseId}`);
           
-          // Update both collections
-          const leaveRes = await leaveCollection.updateOne({ mondayId: pulseIdStr }, { $set: { date: newDate } });
-          const eventRes = await eventCollection.updateOne({ mondayId: pulseIdStr }, { $set: { date: newDate } });
+          // Update using multiple possible ID fields to be safe
+          const query = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
+          const leaveRes = await leaveCollection.updateOne(query, { $set: { date: newDate } });
+          const eventRes = await eventCollection.updateOne(query, { $set: { date: newDate } });
           
           console.log(`Update results - Leaves: ${leaveRes.modifiedCount}, Events: ${eventRes.modifiedCount}`);
           
@@ -238,12 +251,11 @@ app.post('/api/monday-webhook', async (req, res) => {
       }
     } 
     // Handle Item Deletion
-    else if (event.type === 'delete_item') {
-      const pulseIdStr = event.pulseId.toString();
-      console.log(`Deleting pulseId: ${pulseIdStr}`);
-      
-      await leaveCollection.deleteOne({ mondayId: pulseIdStr });
-      await eventCollection.deleteOne({ mondayId: pulseIdStr });
+    else if (event.type === 'delete_item' || event.type === 'item_deleted') {
+      console.log(`Deleting pulseId: ${pulseId}`);
+      const query = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
+      await leaveCollection.deleteOne(query);
+      await eventCollection.deleteOne(query);
       
       await refreshLocalData();
       broadcastUpdate({ type: 'init', data });
