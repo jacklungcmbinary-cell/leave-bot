@@ -1,6 +1,5 @@
 const express = require('express');
 const http = require('http');
-const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
@@ -13,7 +12,7 @@ const app = express();
 // --- Configuration ---
 const MONDAY_API_KEY = process.env.MONDAY_API_KEY || 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.tmxNC_r13mrtzrQ4mI6lDdMCtgdlphejzM1p_-rhGVI';
 const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID || '5027993274';
-const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot_db?retryWrites=true&w=majority";
+const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot?retryWrites=true&w=majority";
 
 const GROUP_MAPPING = {
   'Jenny': 'group_mkya843p',
@@ -36,9 +35,8 @@ async function connectDB() {
   try {
     await client.connect();
     console.log("Connected to MongoDB Atlas");
-    // Explicitly use leave_bot_db as requested
+    // Use leave_bot database and leaverecords collection as requested
     db = client.db("leave_bot");
-    // Explicitly use leaverecords (lowercase) as requested
     leaveCollection = db.collection("leaverecords");
     eventCollection = db.collection("events");
     
@@ -116,7 +114,6 @@ async function forceSyncFromMonday() {
         );
       }
     }
-    // Clean up records that no longer exist on Monday.com
     await leaveCollection.deleteMany({ mondayId: { $nin: mondayIds } });
     await eventCollection.deleteMany({ mondayId: { $nin: mondayIds } });
     console.log("Force sync completed.");
@@ -285,5 +282,5 @@ function broadcastUpdate(update) {
 }
 
 connectDB().then(() => {
-  server.listen(3000, () => console.log('Server running with Bi-directional Sync and leave_bot_db priority'));
+  server.listen(3000, () => console.log('Server running with Bi-directional Sync and leave_bot.leaverecords priority'));
 });

@@ -665,42 +665,6 @@
         }
         .rule-item.passed { color: #2f855a; }
         .rule-item.failed { color: #d63031; font-weight: 600; }
-
-        /* Skeleton Screens */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-            border-radius: 4px;
-        }
-
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .skeleton-text { height: 1em; margin-bottom: 0.5em; width: 100%; }
-        .skeleton-title { height: 1.5em; margin-bottom: 1em; width: 60%; }
-        .skeleton-badge { height: 24px; margin-bottom: 4px; width: 80%; border-radius: 12px; }
-
-        /* Drag & Drop Styles */
-        .leave-badge {
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-            user-select: none;
-            position: relative;
-        }
-        
-        .leave-badge.dragging {
-            opacity: 0.5;
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 1000;
-        }
-        
-        .calendar-day.drag-over {
-            background-color: rgba(0, 115, 234, 0.1) !important;
-            border: 2px dashed var(--monday-blue) !important;
-        }
     </style>
 </head>
 <body>
@@ -1314,38 +1278,7 @@
             });
         }
 
-        function showSkeletons() {
-            const calendarDays = document.getElementById('calendarDays');
-            if (calendarDays) {
-                calendarDays.innerHTML = '';
-                for (let i = 0; i < 35; i++) {
-                    const day = document.createElement('div');
-                    day.className = 'calendar-day';
-                    day.innerHTML = `
-                        <div class="skeleton" style="width: 20px; height: 20px; margin-bottom: 8px;"></div>
-                        <div class="skeleton-badge skeleton"></div>
-                        <div class="skeleton-badge skeleton" style="width: 60%;"></div>
-                    `;
-                    calendarDays.appendChild(day);
-                }
-            }
-            
-            const teamSummary = document.getElementById('teamSummary');
-            if (teamSummary) {
-                teamSummary.innerHTML = `
-                    <div class="colleague-card">
-                        <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
-                        <div style="flex: 1; margin-left: 12px;">
-                            <div class="skeleton-text skeleton" style="width: 40%;"></div>
-                            <div class="skeleton-text skeleton" style="width: 20%;"></div>
-                        </div>
-                    </div>
-                `.repeat(3);
-            }
-        }
-
         function fetchData() {
-            showSkeletons();
             // Use fetch to get latest data
             Promise.all([
                 fetch('/api/data').then(res => res.json()),
@@ -1452,21 +1385,6 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const day = document.createElement('div');
                 day.className = 'calendar-day' + (dateStr === today ? ' today' : '');
-                day.dataset.date = dateStr;
-                
-                // Drag & Drop Handlers
-                day.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    day.classList.add('drag-over');
-                });
-                day.addEventListener('dragleave', () => day.classList.remove('drag-over'));
-                day.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    day.classList.remove('drag-over');
-                    const leaveId = e.dataTransfer.getData('text/plain');
-                    handleLeaveDrop(leaveId, dateStr);
-                });
-
                 day.innerHTML = `<div class="day-number">${i}</div>`;
                 
                 // Add Leaves
@@ -1474,17 +1392,8 @@
                 dayLeaves.forEach(r => {
                     const badge = document.createElement('div');
                     badge.className = `leave-badge badge-${r.type.toLowerCase()}`;
-                    badge.draggable = true;
                     badge.textContent = `${r.colleague} - ${r.type}${r.halfDay ? ' (' + r.halfDay.toUpperCase() + ')' : ''}`;
                     badge.onclick = (e) => { e.stopPropagation(); openEditModal(r); };
-                    
-                    // Drag Start
-                    badge.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.setData('text/plain', r.id);
-                        badge.classList.add('dragging');
-                    });
-                    badge.addEventListener('dragend', () => badge.classList.remove('dragging'));
-                    
                     day.appendChild(badge);
                 });
 
@@ -1502,25 +1411,6 @@
                 day.onclick = () => openQuickAddModal(dateStr);
                 
                 grid.appendChild(day);
-            }
-        }
-
-        function handleLeaveDrop(leaveId, newDate) {
-            const record = leaveRecords.find(r => r.id === leaveId);
-            if (!record || record.date === newDate) return;
-
-            // Optimistic UI update
-            const oldDate = record.date;
-            record.date = newDate;
-            renderCalendar();
-
-            // Send to server
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'moveLeave',
-                    leaveId: leaveId,
-                    newDate: newDate
-                }));
             }
         }
 
