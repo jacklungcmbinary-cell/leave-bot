@@ -37,9 +37,9 @@ async function connectDB() {
     await client.connect();
     console.log("Connected to MongoDB Atlas");
     // Explicitly use leave_bot_db as requested
-    db = client.db("leave_bot_db");
-    // Explicitly use leaveRecords (case-sensitive) as requested
-    leaveCollection = db.collection("leaveRecords");
+    db = client.db("leave_bot");
+    // Explicitly use leaverecords (lowercase) as requested
+    leaveCollection = db.collection("leaverecords");
     eventCollection = db.collection("events");
     
     await forceSyncFromMonday();
