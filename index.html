@@ -7,7 +7,7 @@
     <meta http-equiv="Expires" content="-1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, no-cache">
     <title>CM Binary Digital Team - Leave Management Bot</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* Skeleton Screen Styles */
@@ -1028,9 +1028,9 @@
 <body>
     <div class="sidebar">
         <div class="sidebar-header">
-            <img src="logo.png" alt="CM Binary" class="logo-img">
-            <h1 id="appTitle">🤖 請假機器人</h1>
-            <p style="font-size: 0.8em; opacity: 0.6; margin-top: 4px;">v3.3.0</p>
+            <img src="logo.png" alt="CM Binary" class="logo-img" style="margin-bottom: 15px;">
+            <h1 id="sidebarTitle" style="display: none;">🤖 請假機器人</h1>
+            <div style="font-size: 0.7em; color: rgba(255,255,255,0.5); margin-top: 4px;">v3.3.0</div>
         </div>
         <nav class="sidebar-nav">
             <button class="tab-button active" onclick="switchTab('app')" id="tabRequest" data-manus_clickable="true" data-manus_click_id="1">📝 申請</button>
@@ -3436,32 +3436,40 @@
             const yearSelect = document.getElementById('adminYearFilter');
             const monthSelect = document.getElementById('adminMonthFilter');
             if (!yearSelect || !monthSelect) return;
-            if (yearSelect.options.length > 0) return; // Already initialized
-
+            
             const now = new Date();
             const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+
+            // Only clear and re-init if empty
+            if (yearSelect.options.length === 0) {
+                for (let y = 2024; y <= currentYear + 1; y++) {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                }
+            }
             
-            // Years
-            for (let y = 2024; y <= currentYear + 1; y++) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = y;
-                if (y === currentYear) opt.selected = true;
-                yearSelect.appendChild(opt);
+            if (monthSelect.options.length === 0) {
+                const monthNames = currentLanguage === 'zh' ? 
+                    ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] :
+                    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                monthNames.forEach((name, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i + 1;
+                    opt.textContent = name;
+                    monthSelect.appendChild(opt);
+                });
             }
 
-            // Months
-            const monthNames = currentLanguage === 'zh' ? 
-                ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] :
-                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            
-            monthNames.forEach((name, i) => {
-                const opt = document.createElement('option');
-                opt.value = i + 1;
-                opt.textContent = name;
-                if (i === now.getMonth()) opt.selected = true;
-                monthSelect.appendChild(opt);
-            });
+            // Always set to current month if it's the first time or requested
+            if (!yearSelect.dataset.initialized) {
+                yearSelect.value = currentYear;
+                monthSelect.value = currentMonth;
+                yearSelect.dataset.initialized = "true";
+            }
         }
 
         function updateAdminTab() {
