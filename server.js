@@ -36,7 +36,9 @@ async function connectDB() {
   try {
     await client.connect();
     console.log("Connected to MongoDB Atlas");
+    // Explicitly use leave_bot_db as requested
     db = client.db("leave_bot_db");
+    // Explicitly use leaveRecords (case-sensitive) as requested
     leaveCollection = db.collection("leaveRecords");
     eventCollection = db.collection("events");
     
@@ -114,6 +116,7 @@ async function forceSyncFromMonday() {
         );
       }
     }
+    // Clean up records that no longer exist on Monday.com
     await leaveCollection.deleteMany({ mondayId: { $nin: mondayIds } });
     await eventCollection.deleteMany({ mondayId: { $nin: mondayIds } });
     console.log("Force sync completed.");
@@ -183,7 +186,6 @@ app.get('/api/event', (req, res) => res.json(data.events));
 
 // --- Monday Webhook for Backward Sync ---
 app.post('/api/monday-webhook', async (req, res) => {
-  // 1. Handle Monday.com Webhook Challenge
   if (req.body.challenge) {
     return res.json({ challenge: req.body.challenge });
   }
@@ -195,15 +197,13 @@ app.post('/api/monday-webhook', async (req, res) => {
 
   try {
     if (event.type === 'update_column_value' || event.type === 'change_column_value') {
-      // Handle date change on Monday.com
       if (event.column_id === 'date4') {
         const newDate = event.value.date;
         await leaveCollection.updateOne({ mondayId: event.pulseId.toString() }, { $set: { date: newDate } });
         await refreshLocalData();
-        broadcastUpdate({ type: 'init', data }); // Broadcast full refresh to all clients
+        broadcastUpdate({ type: 'init', data });
       }
     } else if (event.type === 'delete_item') {
-      // Handle item deletion on Monday.com
       await leaveCollection.deleteOne({ mondayId: event.pulseId.toString() });
       await refreshLocalData();
       broadcastUpdate({ type: 'init', data });
@@ -285,5 +285,5 @@ function broadcastUpdate(update) {
 }
 
 connectDB().then(() => {
-  server.listen(3000, () => console.log('Server running with Bi-directional Sync'));
+  server.listen(3000, () => console.log('Server running with Bi-directional Sync and leave_bot_db priority'));
 });
