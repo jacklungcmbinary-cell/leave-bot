@@ -40,10 +40,11 @@ async function connectDB() {
     leaveCollection = db.collection("leaveRecords");
     eventCollection = db.collection("events");
     
-    // Force sync from Monday.com on startup to ensure data is updated
+    // CRITICAL: Always sync from Monday.com first on startup
+    // This ensures that any code update or server restart pulls the latest truth from Monday.com
     await forceSyncFromMonday();
     
-    // Initial data load from MongoDB
+    // Initial data load from MongoDB to local memory
     await refreshLocalData();
   } catch (err) {
     console.error("MongoDB Connection Error:", err.message);
@@ -79,8 +80,9 @@ async function refreshLocalData() {
 }
 
 async function forceSyncFromMonday() {
-  console.log("Starting force sync from Monday.com...");
+  console.log("Starting force sync from Monday.com (Source of Truth)...");
   const url = "https://api.monday.com/v2";
+  // Fetch all items from the board to sync state
   const query = `query { boards (ids: ${MONDAY_BOARD_ID}) { items_page (limit: 500) { items { id name group { id } column_values (ids: ["date4"]) { text value } } } } }`;
   
   try {
@@ -88,8 +90,15 @@ async function forceSyncFromMonday() {
       headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' }
     });
     
+    if (!response.data.data || !response.data.data.boards[0]) {
+      throw new Error("Invalid response from Monday.com API");
+    }
+
     const items = response.data.data.boards[0].items_page.items;
     const reverseGroupMapping = Object.fromEntries(Object.entries(GROUP_MAPPING).map(([k, v]) => [v, k]));
+    
+    // Track IDs currently in Monday to remove deleted ones from MongoDB
+    const mondayIds = items.map(i => i.id);
     
     for (const item of items) {
       const colleague = reverseGroupMapping[item.group.id];
@@ -105,7 +114,7 @@ async function forceSyncFromMonday() {
           { upsert: true }
         );
       } else {
-        // Parse type from name (e.g., "Jack - AL")
+        // Parse type and halfDay from name (e.g., "Jack - AL (AM)")
         const typeMatch = item.name.match(/ - ([A-Z]+)/);
         const type = typeMatch ? typeMatch[1] : 'AL';
         const halfDayMatch = item.name.match(/\((AM|PM)\)/i);
@@ -119,13 +128,18 @@ async function forceSyncFromMonday() {
             date: dateVal, 
             halfDay, 
             mondayId: item.id,
-            id: item.id // Use mondayId as internal ID if syncing from Monday
+            id: item.id // Use mondayId as internal ID for consistency
           }},
           { upsert: true }
         );
       }
     }
-    console.log("Force sync from Monday.com completed.");
+
+    // Clean up MongoDB: Remove records that no longer exist on Monday.com
+    await leaveCollection.deleteMany({ mondayId: { $nin: mondayIds } });
+    await eventCollection.deleteMany({ mondayId: { $nin: mondayIds } });
+
+    console.log(`Force sync completed. Synced ${items.length} items.`);
   } catch (err) {
     console.error("Error during force sync from Monday:", err.message);
   }
@@ -211,7 +225,9 @@ app.post('/api/leave', async (req, res) => {
   const mondayId = await syncToMonday(record, 'leave');
   if (mondayId) {
     record.mondayId = mondayId;
-    await leaveCollection.updateOne({ id: record.id }, { $set: { mondayId } });
+    // Update internal ID to match Monday ID for consistency
+    await leaveCollection.updateOne({ id: record.id }, { $set: { mondayId, id: mondayId } });
+    record.id = mondayId;
   }
   
   // 3. Refresh local and broadcast
@@ -292,5 +308,5 @@ function broadcastUpdate(update) {
 
 // --- Start Server ---
 connectDB().then(() => {
-  server.listen(3000, () => console.log('Server running on port 3000 with MongoDB'));
+  server.listen(3000, () => console.log('Server running on port 3000 with Monday.com Priority Sync'));
 });
