@@ -5,14 +5,13 @@ const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const { exec } = require('child_process');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 
 // --- Configuration ---
 const MONDAY_API_KEY = process.env.MONDAY_API_KEY || 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.tmxNC_r13mrtzrQ4mI6lDdMCtgdlphejzM1p_-rhGVI';
 const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID || '5027993274';
-// Updated with provided credentials
 const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot?retryWrites=true&w=majority";
 
 const GROUP_MAPPING = {
@@ -67,12 +66,16 @@ async function refreshLocalData() {
     const events = await eventCollection.find({}).toArray();
     const balancesArr = await balanceCollection.find({}).toArray();
     
+    // Standardize data for frontend: ensure 'id' exists and matches 'mondayId' or '_id'
+    const formattedLeaves = leaves.map(l => ({ ...l, id: l.id || l.mondayId || l._id.toString() }));
+    const formattedEvents = events.map(e => ({ ...e, id: e.id || e.mondayId || e._id.toString() }));
+    
     const balances = {};
     balancesArr.forEach(b => { balances[b.colleague] = b.balance; });
     
-    data = { leaveRecords: leaves, events: events, balances: balances };
+    data = { leaveRecords: formattedLeaves, events: formattedEvents, balances: balances };
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-    console.log(`Data refreshed: ${leaves.length} leaves, ${events.length} events`);
+    console.log(`Data refreshed: ${formattedLeaves.length} leaves, ${formattedEvents.length} events`);
   } catch (err) {
     console.error("Error refreshing data:", err);
   }
@@ -120,8 +123,9 @@ async function forceSyncFromMonday() {
         );
       }
     }
-    await leaveCollection.deleteMany({ mondayId: { $nin: mondayIds } });
-    await eventCollection.deleteMany({ mondayId: { $nin: mondayIds } });
+    // Cleanup records that no longer exist on Monday
+    await leaveCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
+    await eventCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
     console.log("Force sync completed.");
   } catch (err) {
     console.error("Error during force sync:", err.message);
@@ -222,21 +226,25 @@ app.post('/api/leave', async (req, res) => {
     record.mondayId = mondayId;
     record.id = mondayId;
     await leaveCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
+  } else {
+    const result = await leaveCollection.insertOne(record);
+    record.id = result.insertedId.toString();
   }
   await refreshLocalData();
   backupToGit();
-  broadcastUpdate({ type: 'add', record });
+  broadcastUpdate({ type: 'init', data });
   res.json(record);
 });
 
 app.delete('/api/leave/:id', async (req, res) => {
-  const record = await leaveCollection.findOne({ id: req.params.id });
+  const id = req.params.id;
+  const record = await leaveCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
   if (record) {
-    await leaveCollection.deleteOne({ id: req.params.id });
+    await leaveCollection.deleteOne({ _id: record._id });
     if (record.mondayId) await deleteMondayItem(record.mondayId);
     await refreshLocalData();
     backupToGit();
-    broadcastUpdate({ type: 'remove', id: req.params.id });
+    broadcastUpdate({ type: 'init', data });
   }
   res.json({ success: true });
 });
@@ -249,6 +257,9 @@ app.post('/api/event', async (req, res) => {
     record.mondayId = mondayId;
     record.id = mondayId;
     await eventCollection.updateOne({ mondayId: record.mondayId }, { $set: record }, { upsert: true });
+  } else {
+    const result = await eventCollection.insertOne(record);
+    record.id = result.insertedId.toString();
   }
   await refreshLocalData();
   broadcastUpdate({ type: 'init', data });
@@ -256,9 +267,10 @@ app.post('/api/event', async (req, res) => {
 });
 
 app.delete('/api/event/:id', async (req, res) => {
-  const record = await eventCollection.findOne({ id: req.params.id });
+  const id = req.params.id;
+  const record = await eventCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
   if (record) {
-    await eventCollection.deleteOne({ id: req.params.id });
+    await eventCollection.deleteOne({ _id: record._id });
     if (record.mondayId) await deleteMondayItem(record.mondayId);
     await refreshLocalData();
     broadcastUpdate({ type: 'init', data });
