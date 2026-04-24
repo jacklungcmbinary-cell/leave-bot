@@ -327,10 +327,7 @@ app.post('/api/leave', async (req, res) => {
       record.id = result.insertedId.toString();
     }
 
-    // Send Instant Slack Notification
-    const timeSlot = record.halfDay ? record.halfDay.toUpperCase() : 'FULL';
-    const slackMsg = `🆕 *新的請假申請*\n👤 *申請人*: ${record.colleague}\n📅 *日期*: ${record.date}\n📝 *類型*: ${record.type} (${timeSlot})\n🔗 <https://leave-bot-y7m4.onrender.com/#calendar|查看日曆>`;
-    await sendSlackMessage(slackMsg);
+
 
     await refreshLocalData();
     backupToGit();
@@ -350,10 +347,7 @@ app.delete('/api/leave/:id', async (req, res) => {
       await leaveCollection.deleteOne({ _id: record._id });
       if (record.mondayId) await deleteMondayItem(record.mondayId);
       
-      // Send Slack Notification for Deletion
-      const timeSlot = record.halfDay ? record.halfDay.toUpperCase() : 'FULL';
-      const slackMsg = `🗑️ *請假已取消*\n👤 *申請人*: ${record.colleague}\n📅 *日期*: ${record.date}\n📝 *類型*: ${record.type} (${timeSlot})`;
-      await sendSlackMessage(slackMsg);
+
 
       await refreshLocalData();
       backupToGit();
