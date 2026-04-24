@@ -40,15 +40,10 @@ async function connectDB() {
     leaveCollection = db.collection("leaveRecords");
     eventCollection = db.collection("events");
     
-    // CRITICAL: Always sync from Monday.com first on startup
-    // This ensures that any code update or server restart pulls the latest truth from Monday.com
     await forceSyncFromMonday();
-    
-    // Initial data load from MongoDB to local memory
     await refreshLocalData();
   } catch (err) {
     console.error("MongoDB Connection Error:", err.message);
-    // Fallback to local data if MongoDB fails
     data = loadLocalData();
   }
 }
@@ -70,8 +65,6 @@ async function refreshLocalData() {
     const leaves = await leaveCollection.find({}).toArray();
     const events = await eventCollection.find({}).toArray();
     data = { leaveRecords: leaves, events: events };
-    
-    // Backup to local file
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
     console.log(`Data refreshed from MongoDB: ${leaves.length} leaves, ${events.length} events`);
   } catch (err) {
@@ -80,9 +73,8 @@ async function refreshLocalData() {
 }
 
 async function forceSyncFromMonday() {
-  console.log("Starting force sync from Monday.com (Source of Truth)...");
+  console.log("Starting force sync from Monday.com...");
   const url = "https://api.monday.com/v2";
-  // Fetch all items from the board to sync state
   const query = `query { boards (ids: ${MONDAY_BOARD_ID}) { items_page (limit: 500) { items { id name group { id } column_values (ids: ["date4"]) { text value } } } } }`;
   
   try {
@@ -90,14 +82,10 @@ async function forceSyncFromMonday() {
       headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' }
     });
     
-    if (!response.data.data || !response.data.data.boards[0]) {
-      throw new Error("Invalid response from Monday.com API");
-    }
+    if (!response.data.data || !response.data.data.boards[0]) return;
 
     const items = response.data.data.boards[0].items_page.items;
     const reverseGroupMapping = Object.fromEntries(Object.entries(GROUP_MAPPING).map(([k, v]) => [v, k]));
-    
-    // Track IDs currently in Monday to remove deleted ones from MongoDB
     const mondayIds = items.map(i => i.id);
     
     for (const item of items) {
@@ -114,7 +102,6 @@ async function forceSyncFromMonday() {
           { upsert: true }
         );
       } else {
-        // Parse type and halfDay from name (e.g., "Jack - AL (AM)")
         const typeMatch = item.name.match(/ - ([A-Z]+)/);
         const type = typeMatch ? typeMatch[1] : 'AL';
         const halfDayMatch = item.name.match(/\((AM|PM)\)/i);
@@ -122,34 +109,23 @@ async function forceSyncFromMonday() {
 
         await leaveCollection.updateOne(
           { mondayId: item.id },
-          { $set: { 
-            colleague, 
-            type, 
-            date: dateVal, 
-            halfDay, 
-            mondayId: item.id,
-            id: item.id // Use mondayId as internal ID for consistency
-          }},
+          { $set: { colleague, type, date: dateVal, halfDay, mondayId: item.id, id: item.id }},
           { upsert: true }
         );
       }
     }
-
-    // Clean up MongoDB: Remove records that no longer exist on Monday.com
     await leaveCollection.deleteMany({ mondayId: { $nin: mondayIds } });
     await eventCollection.deleteMany({ mondayId: { $nin: mondayIds } });
-
-    console.log(`Force sync completed. Synced ${items.length} items.`);
+    console.log("Force sync completed.");
   } catch (err) {
-    console.error("Error during force sync from Monday:", err.message);
+    console.error("Error during force sync:", err.message);
   }
 }
 
 function backupToGit() {
   const commitMsg = `data: auto-sync at ${new Date().toISOString()}`;
-  exec(`git add data.json && git commit -m "${commitMsg}" && git push origin main`, (error, stdout, stderr) => {
+  exec(`git add data.json && git commit -m "${commitMsg}" && git push origin main`, (error) => {
     if (error) console.error(`Git push error: ${error.message}`);
-    else console.log(`Git push success: ${stdout}`);
   });
 }
 
@@ -170,11 +146,7 @@ async function syncToMonday(record, type = 'leave') {
 
   if (!groupId) return null;
 
-  const query = `
-    mutation ($itemName: String!, $boardId: ID!, $groupId: String!, $columnValues: JSON!) {
-      create_item (board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columnValues) { id }
-    }
-  `;
+  const query = `mutation ($itemName: String!, $boardId: ID!, $groupId: String!, $columnValues: JSON!) { create_item (board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columnValues) { id } }`;
 
   try {
     const response = await axios.post(url, {
@@ -209,6 +181,40 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/api/data', (req, res) => res.json(data));
 app.get('/api/event', (req, res) => res.json(data.events));
 
+// --- Monday Webhook for Backward Sync ---
+app.post('/api/monday-webhook', async (req, res) => {
+  // 1. Handle Monday.com Webhook Challenge
+  if (req.body.challenge) {
+    return res.json({ challenge: req.body.challenge });
+  }
+
+  const event = req.body.event;
+  if (!event) return res.sendStatus(200);
+
+  console.log(`Received Monday Webhook: ${event.type}`);
+
+  try {
+    if (event.type === 'update_column_value' || event.type === 'change_column_value') {
+      // Handle date change on Monday.com
+      if (event.column_id === 'date4') {
+        const newDate = event.value.date;
+        await leaveCollection.updateOne({ mondayId: event.pulseId.toString() }, { $set: { date: newDate } });
+        await refreshLocalData();
+        broadcastUpdate({ type: 'init', data }); // Broadcast full refresh to all clients
+      }
+    } else if (event.type === 'delete_item') {
+      // Handle item deletion on Monday.com
+      await leaveCollection.deleteOne({ mondayId: event.pulseId.toString() });
+      await refreshLocalData();
+      broadcastUpdate({ type: 'init', data });
+    }
+  } catch (err) {
+    console.error('Webhook processing error:', err.message);
+  }
+
+  res.sendStatus(200);
+});
+
 app.post('/api/leave', async (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
   const record = { 
@@ -217,20 +223,13 @@ app.post('/api/leave', async (req, res) => {
     halfDay: halfDay || null, 
     createdAt: new Date().toISOString() 
   };
-  
-  // 1. Save to MongoDB
   await leaveCollection.insertOne(record);
-  
-  // 2. Sync to Monday
   const mondayId = await syncToMonday(record, 'leave');
   if (mondayId) {
     record.mondayId = mondayId;
-    // Update internal ID to match Monday ID for consistency
     await leaveCollection.updateOne({ id: record.id }, { $set: { mondayId, id: mondayId } });
     record.id = mondayId;
   }
-  
-  // 3. Refresh local and broadcast
   await refreshLocalData();
   backupToGit();
   broadcastUpdate({ type: 'add', record });
@@ -240,14 +239,8 @@ app.post('/api/leave', async (req, res) => {
 app.delete('/api/leave/:id', async (req, res) => {
   const record = await leaveCollection.findOne({ id: req.params.id });
   if (!record) return res.status(404).json({ error: 'Not found' });
-  
-  // 1. Delete from MongoDB
   await leaveCollection.deleteOne({ id: req.params.id });
-  
-  // 2. Delete from Monday
   if (record.mondayId) await deleteMondayItem(record.mondayId);
-  
-  // 3. Refresh and broadcast
   await refreshLocalData();
   backupToGit();
   broadcastUpdate({ type: 'remove', id: req.params.id });
@@ -262,7 +255,6 @@ const clients = new Set();
 wss.on('connection', (ws) => {
   clients.add(ws);
   ws.send(JSON.stringify({ type: 'init', data }));
-  
   ws.on('message', async (message) => {
     try {
       const msg = JSON.parse(message);
@@ -270,34 +262,20 @@ wss.on('connection', (ws) => {
         const { leaveId, newDate } = msg;
         const record = await leaveCollection.findOne({ id: leaveId });
         if (record) {
-          // 1. Update in MongoDB
           await leaveCollection.updateOne({ id: leaveId }, { $set: { date: newDate } });
-          
-          // 2. Update Monday.com if mondayId exists
           if (record.mondayId) {
             const url = "https://api.monday.com/v2";
             const query = `mutation ($itemId: ID!, $columnValues: JSON!) { change_column_value (board_id: ${MONDAY_BOARD_ID}, item_id: $itemId, column_id: "date4", value: $columnValues) { id } }`;
-            await axios.post(url, {
-              query,
-              variables: { 
-                itemId: record.mondayId, 
-                columnValues: JSON.stringify({ "date": newDate }) 
-              }
-            }, {
+            await axios.post(url, { query, variables: { itemId: record.mondayId, columnValues: JSON.stringify({ "date": newDate }) } }, {
               headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' }
             });
           }
-          
-          // 3. Refresh and broadcast
           await refreshLocalData();
           broadcastUpdate({ type: 'update', record: { ...record, date: newDate } });
         }
       }
-    } catch (err) {
-      console.error('WebSocket message error:', err);
-    }
+    } catch (err) { console.error('WS error:', err); }
   });
-
   ws.on('close', () => clients.delete(ws));
 });
 
@@ -306,7 +284,6 @@ function broadcastUpdate(update) {
   clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(msg); });
 }
 
-// --- Start Server ---
 connectDB().then(() => {
-  server.listen(3000, () => console.log('Server running on port 3000 with Monday.com Priority Sync'));
+  server.listen(3000, () => console.log('Server running with Bi-directional Sync'));
 });
