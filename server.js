@@ -196,26 +196,62 @@ app.get('/api/balance', (req, res) => res.json(data.balances));
 
 // --- Monday Webhook ---
 app.post('/api/monday-webhook', async (req, res) => {
-  if (req.body.challenge) return res.json({ challenge: req.body.challenge });
+  // Handle Monday.com Webhook Challenge
+  if (req.body.challenge) {
+    console.log('Webhook Challenge received');
+    return res.json({ challenge: req.body.challenge });
+  }
+
   const event = req.body.event;
   if (!event) return res.sendStatus(200);
 
+  console.log(`Webhook received: ${event.type} for pulseId: ${event.pulseId}`);
+
   try {
+    // Handle Column Value Changes (e.g., Date change)
     if (event.type === 'update_column_value' || event.type === 'change_column_value') {
+      // Check if the changed column is our date column (date4)
       if (event.column_id === 'date4') {
-        const newDate = event.value.date;
-        await leaveCollection.updateOne({ mondayId: event.pulseId.toString() }, { $set: { date: newDate } });
-        await eventCollection.updateOne({ mondayId: event.pulseId.toString() }, { $set: { date: newDate } });
-        await refreshLocalData();
-        broadcastUpdate({ type: 'init', data });
+        let newDate = null;
+        
+        // Monday.com sends date in different formats depending on the event
+        if (event.value && event.value.date) {
+          newDate = event.value.date;
+        } else if (event.text_body) {
+          // Fallback to text body if date object is missing
+          newDate = event.text_body;
+        }
+
+        if (newDate) {
+          console.log(`Updating date to: ${newDate} for pulseId: ${event.pulseId}`);
+          const pulseIdStr = event.pulseId.toString();
+          
+          // Update both collections
+          const leaveRes = await leaveCollection.updateOne({ mondayId: pulseIdStr }, { $set: { date: newDate } });
+          const eventRes = await eventCollection.updateOne({ mondayId: pulseIdStr }, { $set: { date: newDate } });
+          
+          console.log(`Update results - Leaves: ${leaveRes.modifiedCount}, Events: ${eventRes.modifiedCount}`);
+          
+          await refreshLocalData();
+          broadcastUpdate({ type: 'init', data });
+        }
       }
-    } else if (event.type === 'delete_item') {
-      await leaveCollection.deleteOne({ mondayId: event.pulseId.toString() });
-      await eventCollection.deleteOne({ mondayId: event.pulseId.toString() });
+    } 
+    // Handle Item Deletion
+    else if (event.type === 'delete_item') {
+      const pulseIdStr = event.pulseId.toString();
+      console.log(`Deleting pulseId: ${pulseIdStr}`);
+      
+      await leaveCollection.deleteOne({ mondayId: pulseIdStr });
+      await eventCollection.deleteOne({ mondayId: pulseIdStr });
+      
       await refreshLocalData();
       broadcastUpdate({ type: 'init', data });
     }
-  } catch (err) { console.error('Webhook error:', err.message); }
+  } catch (err) { 
+    console.error('Webhook processing error:', err.message); 
+  }
+  
   res.sendStatus(200);
 });
 
