@@ -6,6 +6,7 @@ const fs = require('fs');
 const axios = require('axios');
 const { exec } = require('child_process');
 const { MongoClient, ObjectId } = require('mongodb');
+const cron = require('node-cron');
 
 const app = express();
 
@@ -13,6 +14,7 @@ const app = express();
 const MONDAY_API_KEY = process.env.MONDAY_API_KEY || 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY0ODcxMjcxMSwiYWFpIjoxMSwidWlkIjo1MDg0OTQ5MiwiaWFkIjoiMjAyNi0wNC0yMlQwODo0NjoyMS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkzOTcyODgsInJnbiI6ImFwc2UyIn0.tmxNC_r13mrtzrQ4mI6lDdMCtgdlphejzM1p_-rhGVI';
 const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID || '5027993274';
 const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot?retryWrites=true&w=majority";
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
 const GROUP_MAPPING = {
   'Jenny': 'group_mkya843p',
@@ -138,6 +140,61 @@ function backupToGit() {
   });
 }
 
+// --- Slack Notification Logic ---
+async function sendSlackMessage(text) {
+  if (!SLACK_WEBHOOK_URL) {
+    console.warn('SLACK_WEBHOOK_URL not set, skipping notification.');
+    return;
+  }
+  try {
+    await axios.post(SLACK_WEBHOOK_URL, {
+      text: text,
+      link_names: 1
+    });
+    console.log('Slack notification sent successfully');
+  } catch (err) {
+    console.error('Error sending Slack notification:', err.message);
+  }
+}
+
+// Schedule: Today's Leaves at 10:00 AM HK Time
+cron.schedule('0 10 * * *', async () => {
+  console.log('Running 10AM Slack Notification...');
+  const leaves = await leaveCollection.find({}).toArray();
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Hong_Kong' });
+  
+  const todaysLeaves = leaves.filter(r => r.date === today);
+  if (todaysLeaves.length > 0) {
+    let msg = `📢 *今日團隊出勤狀況 (${today})*\n`;
+    todaysLeaves.forEach(r => {
+      const timeSlot = r.halfDay ? r.halfDay.toUpperCase() : 'FULL';
+      msg += `• *${r.colleague}*: ${r.type} (${timeSlot})\n`;
+    });
+    msg += `\n_請大家留意相關工作交接，祝工作順利！_`;
+    await sendSlackMessage(msg);
+  }
+}, { timezone: "Asia/Hong_Kong" });
+
+// Schedule: Tomorrow's Leaves at 3:00 PM HK Time
+cron.schedule('0 15 * * *', async () => {
+  console.log('Running 3PM Slack Notification...');
+  const leaves = await leaveCollection.find({}).toArray();
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = tomorrowDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Hong_Kong' });
+  
+  const tomorrowsLeaves = leaves.filter(r => r.date === tomorrow);
+  if (tomorrowsLeaves.length > 0) {
+    let msg = `📅 *明日請假預告 (${tomorrow})*\n`;
+    tomorrowsLeaves.forEach(r => {
+      const timeSlot = r.halfDay ? r.halfDay.toUpperCase() : 'FULL';
+      msg += `• *${r.colleague}*: ${r.type} (${timeSlot})\n`;
+    });
+    msg += `\n_提醒大家提前處理明日的交接事項，謝謝！_`;
+    await sendSlackMessage(msg);
+  }
+}, { timezone: "Asia/Hong_Kong" });
+
 // --- Monday.com Integration ---
 async function syncToMonday(record, type = 'leave') {
   const url = "https://api.monday.com/v2";
@@ -197,37 +254,19 @@ app.get('/api/balance', (req, res) => res.json(data.balances));
 
 // --- Monday Webhook ---
 app.post('/api/monday-webhook', async (req, res) => {
-  // Handle Monday.com Webhook Challenge
   if (req.body.challenge) {
-    console.log('Webhook Challenge received');
     return res.json({ challenge: req.body.challenge });
   }
 
   const event = req.body.event;
-  if (!event) {
-    console.log('Webhook received but no event data found in body:', JSON.stringify(req.body));
-    return res.sendStatus(200);
-  }
-
-  console.log(`Webhook received: ${event.type} for pulseId: ${event.pulseId || event.itemId}`);
-  // Log full event for debugging in Render logs
-  console.log('Full Webhook Event Data:', JSON.stringify(event));
+  if (!event) return res.sendStatus(200);
 
   try {
     const pulseId = (event.pulseId || event.itemId || event.pulse_id)?.toString();
-    
-    if (!pulseId) {
-      console.log('Could not determine pulseId from event');
-      return res.sendStatus(200);
-    }
+    if (!pulseId) return res.sendStatus(200);
 
-    // Handle Column Value Changes (e.g., Date change)
     if (event.type === 'update_column_value' || event.type === 'change_column_value') {
-      // Check if the changed column is our date column (date4)
       if (event.column_id === 'date4' || event.columnId === 'date4') {
-        console.log(`Date change detected for pulseId: ${pulseId}. Fetching latest data from Monday...`);
-        
-        // Active Fetching Logic: Instead of relying on webhook data, ask Monday for the latest state
         const url = "https://api.monday.com/v2";
         const queryStr = `query { items (ids: [${pulseId}]) { id name group { id } column_values (ids: ["date4"]) { text } } }`;
         
@@ -241,8 +280,6 @@ app.post('/api/monday-webhook', async (req, res) => {
           const newDate = item.column_values[0].text;
           const reverseGroupMapping = Object.fromEntries(Object.entries(GROUP_MAPPING).map(([k, v]) => [v, k]));
           const colleague = reverseGroupMapping[item.group.id];
-          
-          console.log(`Latest data from Monday: ${item.name} on ${newDate} for ${colleague}`);
           
           const dbQuery = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
           
@@ -262,20 +299,16 @@ app.post('/api/monday-webhook', async (req, res) => {
         }
       }
     } 
-    // Handle Item Deletion
     else if (event.type === 'delete_item' || event.type === 'item_deleted') {
-      console.log(`Deleting pulseId: ${pulseId}`);
       const query = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
       await leaveCollection.deleteOne(query);
       await eventCollection.deleteOne(query);
-      
       await refreshLocalData();
       broadcastUpdate({ type: 'init', data });
     }
   } catch (err) { 
     console.error('Webhook processing error:', err.message); 
   }
-  
   res.sendStatus(200);
 });
 
@@ -283,6 +316,7 @@ app.post('/api/leave', async (req, res) => {
   try {
     const { colleague, type, date, halfDay } = req.body;
     const record = { colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
+    
     const mondayId = await syncToMonday(record, 'leave');
     if (mondayId) {
       record.mondayId = mondayId;
@@ -292,6 +326,12 @@ app.post('/api/leave', async (req, res) => {
       const result = await leaveCollection.insertOne(record);
       record.id = result.insertedId.toString();
     }
+
+    // Send Instant Slack Notification
+    const timeSlot = record.halfDay ? record.halfDay.toUpperCase() : 'FULL';
+    const slackMsg = `🆕 *新的請假申請*\n👤 *申請人*: ${record.colleague}\n📅 *日期*: ${record.date}\n📝 *類型*: ${record.type} (${timeSlot})\n🔗 <https://leave-bot-y7m4.onrender.com/#calendar|查看日曆>`;
+    await sendSlackMessage(slackMsg);
+
     await refreshLocalData();
     backupToGit();
     broadcastUpdate({ type: 'init', data });
@@ -309,6 +349,12 @@ app.delete('/api/leave/:id', async (req, res) => {
     if (record) {
       await leaveCollection.deleteOne({ _id: record._id });
       if (record.mondayId) await deleteMondayItem(record.mondayId);
+      
+      // Send Slack Notification for Deletion
+      const timeSlot = record.halfDay ? record.halfDay.toUpperCase() : 'FULL';
+      const slackMsg = `🗑️ *請假已取消*\n👤 *申請人*: ${record.colleague}\n📅 *日期*: ${record.date}\n📝 *類型*: ${record.type} (${timeSlot})`;
+      await sendSlackMessage(slackMsg);
+
       await refreshLocalData();
       backupToGit();
       broadcastUpdate({ type: 'init', data });
@@ -382,26 +428,19 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(message);
       if (msg.type === 'moveLeave') {
         const { id, newDate, itemType } = msg;
-        console.log(`Moving ${itemType} ${id} to ${newDate}`);
-        
         if (itemType === 'event') {
           const event = await eventCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
           if (event) {
             await eventCollection.updateOne({ _id: event._id }, { $set: { date: newDate } });
-            if (event.mondayId) {
-              await updateMondayDate(event.mondayId, newDate);
-            }
+            if (event.mondayId) await updateMondayDate(event.mondayId, newDate);
           }
         } else {
           const leave = await leaveCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
           if (leave) {
             await leaveCollection.updateOne({ _id: leave._id }, { $set: { date: newDate } });
-            if (leave.mondayId) {
-              await updateMondayDate(leave.mondayId, newDate);
-            }
+            if (leave.mondayId) await updateMondayDate(leave.mondayId, newDate);
           }
         }
-        
         await refreshLocalData();
         broadcastUpdate({ type: 'init', data });
       }
