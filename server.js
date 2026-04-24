@@ -40,6 +40,9 @@ async function connectDB() {
     leaveCollection = db.collection("leaveRecords");
     eventCollection = db.collection("events");
     
+    // Force sync from Monday.com on startup to ensure data is updated
+    await forceSyncFromMonday();
+    
     // Initial data load from MongoDB
     await refreshLocalData();
   } catch (err) {
@@ -72,6 +75,59 @@ async function refreshLocalData() {
     console.log(`Data refreshed from MongoDB: ${leaves.length} leaves, ${events.length} events`);
   } catch (err) {
     console.error("Error refreshing data from MongoDB:", err);
+  }
+}
+
+async function forceSyncFromMonday() {
+  console.log("Starting force sync from Monday.com...");
+  const url = "https://api.monday.com/v2";
+  const query = `query { boards (ids: ${MONDAY_BOARD_ID}) { items_page (limit: 500) { items { id name group { id } column_values (ids: ["date4"]) { text value } } } } }`;
+  
+  try {
+    const response = await axios.post(url, { query }, {
+      headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' }
+    });
+    
+    const items = response.data.data.boards[0].items_page.items;
+    const reverseGroupMapping = Object.fromEntries(Object.entries(GROUP_MAPPING).map(([k, v]) => [v, k]));
+    
+    for (const item of items) {
+      const colleague = reverseGroupMapping[item.group.id];
+      if (!colleague) continue;
+      
+      const dateVal = item.column_values[0].text;
+      if (!dateVal) continue;
+
+      if (colleague === 'Event') {
+        await eventCollection.updateOne(
+          { mondayId: item.id },
+          { $set: { name: item.name, date: dateVal, mondayId: item.id } },
+          { upsert: true }
+        );
+      } else {
+        // Parse type from name (e.g., "Jack - AL")
+        const typeMatch = item.name.match(/ - ([A-Z]+)/);
+        const type = typeMatch ? typeMatch[1] : 'AL';
+        const halfDayMatch = item.name.match(/\((AM|PM)\)/i);
+        const halfDay = halfDayMatch ? halfDayMatch[1].toLowerCase() : null;
+
+        await leaveCollection.updateOne(
+          { mondayId: item.id },
+          { $set: { 
+            colleague, 
+            type, 
+            date: dateVal, 
+            halfDay, 
+            mondayId: item.id,
+            id: item.id // Use mondayId as internal ID if syncing from Monday
+          }},
+          { upsert: true }
+        );
+      }
+    }
+    console.log("Force sync from Monday.com completed.");
+  } catch (err) {
+    console.error("Error during force sync from Monday:", err.message);
   }
 }
 
@@ -137,6 +193,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/api/data', (req, res) => res.json(data));
+app.get('/api/event', (req, res) => res.json(data.events));
 
 app.post('/api/leave', async (req, res) => {
   const { colleague, type, date, halfDay } = req.body;
