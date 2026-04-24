@@ -144,7 +144,8 @@ async function syncToMonday(record, type = 'leave') {
   let itemName = '', groupId = '', dateVal = '';
 
   if (type === 'leave') {
-    itemName = `${record.colleague} - ${record.type}${record.halfDay ? ' (' + record.halfDay.toUpperCase() + ')' : ''}`;
+    const halfDaySuffix = record.halfDay ? ` (${record.halfDay.toUpperCase()})` : (record.type === 'EL' ? '' : ' (Full)');
+    itemName = `${record.colleague} - ${record.type}${halfDaySuffix}`;
     groupId = GROUP_MAPPING[record.colleague] || '';
     dateVal = record.date;
   } else if (type === 'event') {
@@ -375,8 +376,62 @@ const clients = new Set();
 wss.on('connection', (ws) => {
   clients.add(ws);
   ws.send(JSON.stringify({ type: 'init', data }));
+  
+  ws.on('message', async (message) => {
+    try {
+      const msg = JSON.parse(message);
+      if (msg.type === 'moveLeave') {
+        const { id, newDate, itemType } = msg;
+        console.log(`Moving ${itemType} ${id} to ${newDate}`);
+        
+        if (itemType === 'event') {
+          const event = await eventCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
+          if (event) {
+            await eventCollection.updateOne({ _id: event._id }, { $set: { date: newDate } });
+            if (event.mondayId) {
+              await updateMondayDate(event.mondayId, newDate);
+            }
+          }
+        } else {
+          const leave = await leaveCollection.findOne({ $or: [{ id: id }, { mondayId: id }] });
+          if (leave) {
+            await leaveCollection.updateOne({ _id: leave._id }, { $set: { date: newDate } });
+            if (leave.mondayId) {
+              await updateMondayDate(leave.mondayId, newDate);
+            }
+          }
+        }
+        
+        await refreshLocalData();
+        broadcastUpdate({ type: 'init', data });
+      }
+    } catch (err) {
+      console.error('WebSocket message error:', err);
+    }
+  });
+
   ws.on('close', () => clients.delete(ws));
 });
+
+async function updateMondayDate(mondayId, newDate) {
+  const url = "https://api.monday.com/v2";
+  const query = `mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) { change_multiple_column_values (item_id: $itemId, board_id: $boardId, column_values: $columnValues) { id } }`;
+  try {
+    await axios.post(url, {
+      query,
+      variables: { 
+        itemId: mondayId, 
+        boardId: MONDAY_BOARD_ID, 
+        columnValues: JSON.stringify({ "date4": { "date": newDate } }) 
+      }
+    }, {
+      headers: { 'Authorization': MONDAY_API_KEY, 'Content-Type': 'application/json', 'API-Version': '2023-10' },
+      timeout: 10000
+    });
+  } catch (err) {
+    console.error('Error updating date on Monday:', err.message);
+  }
+}
 
 function broadcastUpdate(update) {
   const msg = JSON.stringify(update);

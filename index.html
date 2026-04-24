@@ -10,6 +10,166 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
+        /* Skeleton Screen Styles */
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-color: hsl(200, 20%, 80%);
+            }
+            100% {
+                background-color: hsl(200, 20%, 95%);
+            }
+        }
+
+        .skeleton-text {
+            width: 100%;
+            height: 0.7rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .skeleton-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+        }
+
+        .skeleton-square {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.25rem;
+        }
+
+        .skeleton-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: var(--surface);
+        }
+
+        .skeleton-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .skeleton-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .skeleton-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0) 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Skeleton Screen Styles */
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-color: hsl(200, 20%, 80%);
+            }
+            100% {
+                background-color: hsl(200, 20%, 95%);
+            }
+        }
+
+        .skeleton-text {
+            width: 100%;
+            height: 0.7rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .skeleton-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+        }
+
+        .skeleton-square {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.25rem;
+        }
+
+        .skeleton-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: var(--surface);
+        }
+
+        .skeleton-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .skeleton-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .skeleton-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0) 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
         /* Pull to Refresh Styles */
         .pull-to-refresh {
             position: absolute;
@@ -2528,7 +2688,7 @@
                     const isHoliday = hkHolidays[leave.date];
                     const isNonWorking = isWeekend || isHoliday;
                     
-                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : ' (Full)';
+                    const halfDayText = leave.halfDay && leave.halfDay !== 'full' ? ' (' + leave.halfDay.toUpperCase() + ')' : (leave.type === 'EL' ? '' : ' (Full)');
                     const statusText = isNonWorking ? ` <span style="color: #ef4444; font-size: 0.8em;">(${isHoliday || (currentLanguage === 'zh' ? '週末' : 'Weekend')})</span>` : '';
                     const itemStyle = isNonWorking ? 'style="opacity: 0.7; background-color: #f3f4f6;"' : '';
                     
@@ -2599,6 +2759,7 @@
                 const isHoliday = hkHolidays[dateISO];
                 
                 dayDiv.className = 'calendar-day';
+                dayDiv.setAttribute('data-date', dateISO);
                 if (current.getMonth() !== month) {
                     dayDiv.classList.add('other-month');
                 }
@@ -2608,8 +2769,7 @@
                 if (dayEvents.length > 0) {
                     dayDiv.classList.add('event');
                 }
-
-                let html = `<div class="calendar-day-number">${current.getDate()}</div>`;
+                let html = `<div class="calendar-day-number">${current.getDate()}</div>`;;
                 html += '<div class="calendar-day-leaves">';
                 
                 if (isHoliday) {
@@ -2625,11 +2785,11 @@
                     
                     const leaveLabel = `${leave.colleague} ${typeLabel}`;
                     const fullTypeClass = leave.type.toLowerCase().replace(/\s+/g, '-');
-                    html += `<div class="leave-badge ${fullTypeClass}" data-id="${leave.id}" data-type="${leave.type}" onclick="editLeave('${leave.id}')" title="${leave.colleague} ${leave.type}" style="background-color: ${color}; color: white; cursor: pointer;">${leaveLabel}${halfDayText}</div>`;
+                    html += `<div class="leave-badge ${fullTypeClass}" draggable="true" data-id="${leave.id}" data-type="${leave.type}" onclick="editLeave('${leave.id}')" title="${leave.colleague} ${leave.type}" style="background-color: ${color}; color: white; cursor: pointer;">${leaveLabel}${halfDayText}</div>`;
                 });
                 
                 dayEvents.forEach(event => {
-                    html += `<div class="event-badge" onclick="editEvent('${event.id}'); return false;" style="cursor: pointer;">${event.name}</div>`;
+                    html += `<div class="event-badge" draggable="true" data-id="${event.id}" data-type="event" onclick="editEvent('${event.id}'); return false;" style="cursor: pointer;">${event.name}</div>`;
                 });
                 
                 html += '</div>';
@@ -2655,8 +2815,8 @@
                 current.setDate(current.getDate() + 1);
             }
             
-            // Drag and drop disabled as per user request
-            // initializeDragAndDrop();
+            // Drag and drop enabled
+            initializeDragAndDrop();
         }
 
         function previousMonth() {
@@ -2735,7 +2895,7 @@
             
             // Setup drag start on badges
             calendarDays.addEventListener('dragstart', (e) => {
-                const badge = e.target.closest('.leave-badge');
+                const badge = e.target.closest('.leave-badge, .event-badge');
                 if (!badge) return;
                 
                 draggedBadge = badge;
@@ -2782,12 +2942,12 @@
             });
         }
         
-        function moveLeaveToDate(leaveId, leaveType, newDate) {
+        function moveLeaveToDate(id, itemType, newDate) {
             // Send update to server via WebSocket
             const message = {
                 type: 'moveLeave',
-                leaveId: leaveId,
-                leaveType: leaveType,
+                id: id,
+                itemType: itemType,
                 newDate: newDate
             };
             ws.send(JSON.stringify(message));
