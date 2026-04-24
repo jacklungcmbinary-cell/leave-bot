@@ -224,26 +224,37 @@ app.post('/api/monday-webhook', async (req, res) => {
     if (event.type === 'update_column_value' || event.type === 'change_column_value') {
       // Check if the changed column is our date column (date4)
       if (event.column_id === 'date4' || event.columnId === 'date4') {
-        let newDate = null;
+        console.log(`Date change detected for pulseId: ${pulseId}. Fetching latest data from Monday...`);
         
-        // Try multiple ways to extract the date
-        if (event.value && event.value.date) {
-          newDate = event.value.date;
-        } else if (event.column_values && event.column_values.date4) {
-          newDate = event.column_values.date4.date || event.column_values.date4.text;
-        } else if (event.text_body) {
-          newDate = event.text_body;
-        }
+        // Active Fetching Logic: Instead of relying on webhook data, ask Monday for the latest state
+        const url = "https://api.monday.com/v2";
+        const queryStr = `query { items (ids: [${pulseId}]) { id name group { id } column_values (ids: ["date4"]) { text } } }`;
+        
+        const response = await axios.post(url, { query: queryStr }, {
+          headers: { 'Authorization': MONDAY_API_KEY, 'API-Version': '2023-10' },
+          timeout: 10000
+        });
 
-        if (newDate) {
-          console.log(`Updating date to: ${newDate} for pulseId: ${pulseId}`);
+        const item = response.data.data?.items?.[0];
+        if (item && item.column_values?.[0]?.text) {
+          const newDate = item.column_values[0].text;
+          const reverseGroupMapping = Object.fromEntries(Object.entries(GROUP_MAPPING).map(([k, v]) => [v, k]));
+          const colleague = reverseGroupMapping[item.group.id];
           
-          // Update using multiple possible ID fields to be safe
-          const query = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
-          const leaveRes = await leaveCollection.updateOne(query, { $set: { date: newDate } });
-          const eventRes = await eventCollection.updateOne(query, { $set: { date: newDate } });
+          console.log(`Latest data from Monday: ${item.name} on ${newDate} for ${colleague}`);
           
-          console.log(`Update results - Leaves: ${leaveRes.modifiedCount}, Events: ${eventRes.modifiedCount}`);
+          const dbQuery = { $or: [{ mondayId: pulseId }, { id: pulseId }] };
+          
+          if (colleague === 'Event') {
+            await eventCollection.updateOne(dbQuery, { $set: { name: item.name, date: newDate } });
+          } else {
+            const typeMatch = item.name.match(/ - ([A-Z\s]+)/);
+            const type = typeMatch ? typeMatch[1].trim() : 'AL';
+            const halfDayMatch = item.name.match(/\((AM|PM)\)/i);
+            const halfDay = halfDayMatch ? halfDayMatch[1].toLowerCase() : null;
+            
+            await leaveCollection.updateOne(dbQuery, { $set: { colleague, type, date: newDate, halfDay } });
+          }
           
           await refreshLocalData();
           broadcastUpdate({ type: 'init', data });
