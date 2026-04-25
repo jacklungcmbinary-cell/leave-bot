@@ -112,6 +112,9 @@ async function forceSyncFromMonday() {
           { $set: { name: item.name, date: dateVal, mondayId: item.id, id: item.id } },
           { upsert: true }
         );
+      } else if (colleague === 'Holiday') {
+        // Holiday entries are public holidays — skip storing them as leave records
+        continue;
       } else {
         const typeMatch = item.name.match(/ - ([A-Z\s]+)/);
         const type = typeMatch ? typeMatch[1].trim() : 'AL';
@@ -125,7 +128,8 @@ async function forceSyncFromMonday() {
         );
       }
     }
-    await leaveCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
+    // Only delete leave records that are no longer in Monday AND are not Holiday entries
+    await leaveCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds }, colleague: { $ne: 'Holiday' } });
     await eventCollection.deleteMany({ mondayId: { $exists: true, $nin: mondayIds } });
     console.log("Force sync completed.");
   } catch (err) {
@@ -285,6 +289,8 @@ app.post('/api/monday-webhook', async (req, res) => {
           
           if (colleague === 'Event') {
             await eventCollection.updateOne(dbQuery, { $set: { name: item.name, date: newDate } });
+          } else if (colleague === 'Holiday') {
+            // Holiday entries are public holidays — skip updating them as leave records
           } else {
             const typeMatch = item.name.match(/ - ([A-Z\s]+)/);
             const type = typeMatch ? typeMatch[1].trim() : 'AL';
@@ -315,6 +321,12 @@ app.post('/api/monday-webhook', async (req, res) => {
 app.post('/api/leave', async (req, res) => {
   try {
     const { colleague, type, date, halfDay } = req.body;
+    
+    // Block Holiday entries from being stored as leave records
+    if (colleague === 'Holiday') {
+      return res.status(400).json({ error: 'Holiday entries cannot be submitted as leave records.' });
+    }
+    
     const record = { colleague, type, date, halfDay: halfDay || null, createdAt: new Date().toISOString() };
     
     const mondayId = await syncToMonday(record, 'leave');

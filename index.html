@@ -2745,7 +2745,10 @@
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            // Adjust for Monday-first calendar: getDay() returns 0=Sun,1=Mon,...,6=Sat
+            // We want Monday as first column (0=Mon,...,6=Sun)
+            const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // 0=Mon, 6=Sun
+            startDate.setDate(startDate.getDate() - firstDayOfWeek);
 
             const calendarDays = document.getElementById('calendarDays');
             calendarDays.innerHTML = '';
