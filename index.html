@@ -1118,6 +1118,7 @@
                                 <option value="EL">Early Leave (EL)</option>
                                 <option value="Birthday Leave">Birthday Leave</option>
                                 <option value="Exam Leave">Exam Leave</option>
+                                <option value="No Pay Leave">No Pay Leave</option>
                             </select>
                         </div>
 
@@ -2403,7 +2404,7 @@
                 const rules = [];
                 const existing = leaveRecords.filter(r => r.date === date);
 
-                if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave') {
+                if (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave' || type === 'No Pay Leave') {
                     const currentHalfDay = halfDayOverride !== null ? halfDayOverride : (type === 'AL' ? (selectedALDates[date] || 'full') : 'full');
                     
                     if (colleague === 'Rita') {
@@ -2458,7 +2459,7 @@
                     }
                 }
 
-                if (type === 'AL' || type === 'EL' || type === 'Birthday Leave' || type === 'Exam Leave') {
+                if (type === 'AL' || type === 'EL' || type === 'Birthday Leave' || type === 'Exam Leave' || type === 'No Pay Leave') {
                     const buddyInfo = BUDDY_SYSTEM[colleague];
                     if (buddyInfo) {
                         const buddiesAvailable = !buddyInfo.buddies.some(b => existing.some(r => r.colleague === b));
@@ -2485,9 +2486,9 @@
                 const isNonWorkingDay = isWeekend || isPublicHoliday;
                 
                 let totalCount = existing.length;
-                if (isNonWorkingDay && (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave')) {
+                if (isNonWorkingDay && (type === 'AL' || type === 'Birthday Leave' || type === 'Exam Leave' || type === 'No Pay Leave')) {
                     // On weekends and public holidays, these don't count towards the total limit
-                    totalCount = existing.filter(r => !((r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave') && (r.halfDay === 'full' || !r.halfDay))).length;
+                    totalCount = existing.filter(r => !((r.type === 'AL' || r.type === 'Birthday Leave' || r.type === 'Exam Leave' || r.type === 'No Pay Leave') && (r.halfDay === 'full' || !r.halfDay))).length;
                 }
                 
                 rules.push({
@@ -2711,6 +2712,28 @@
                 });
             }
             document.getElementById('myLeavesEL').innerHTML = elHtml;
+            
+            // Display No Pay Leave
+            const nplLeaves = leaveRecords.filter(r => r.colleague === selectedColleague && r.type === 'No Pay Leave' && r.date.startsWith(yearFilter)).sort((a, b) => new Date(a.date) - new Date(b.date));
+            let nplHtml = '<h4 style="color: #6b7280; margin-bottom: 12px; margin-top: 16px;">💸 No Pay Leave (' + nplLeaves.length + ')</h4>';
+            if (nplLeaves.length === 0) {
+                nplHtml += '<p style="color: var(--muted);">No no-pay leave requests</p>';
+            } else {
+                nplLeaves.forEach(leave => {
+                    const editBtnText = currentLanguage === 'zh' ? '編輯' : 'Edit';
+                    const deleteBtnText = currentLanguage === 'zh' ? '刪除' : 'Delete';
+                    nplHtml += `<div class="leave-item"><div class="leave-item-info">${formatDate(leave.date)}</div><div class="leave-item-actions"><button class="btn-edit" onclick="editLeave('${leave.id}')">${editBtnText}</button><button class="btn-danger" onclick="deleteLeave('${leave.id}')">${deleteBtnText}</button></div></div>`;
+                });
+            }
+            const myLeavesELEl = document.getElementById('myLeavesEL');
+            // Append NPL section after EL
+            let nplContainer = document.getElementById('myLeavesNPL');
+            if (!nplContainer) {
+                nplContainer = document.createElement('div');
+                nplContainer.id = 'myLeavesNPL';
+                myLeavesELEl.parentNode.insertBefore(nplContainer, myLeavesELEl.nextSibling);
+            }
+            nplContainer.innerHTML = nplHtml;
         }
 
 
@@ -2785,6 +2808,7 @@
                     let typeLabel = leave.type;
                     if (leave.type === 'Birthday Leave') typeLabel = 'BD';
                     else if (leave.type === 'Exam Leave') typeLabel = 'Exam';
+                    else if (leave.type === 'No Pay Leave') typeLabel = 'NPL';
                     
                     const leaveLabel = `${leave.colleague} ${typeLabel}`;
                     const fullTypeClass = leave.type.toLowerCase().replace(/\s+/g, '-');
@@ -3521,12 +3545,17 @@
                     const [y, m] = r.date.split('-');
                     return r.colleague === colleague && r.type === 'EL' && parseInt(y) === selectedYear && parseInt(m) === selectedMonth;
                 }).length;
+                
+                const npl = leaveRecords.filter(r => {
+                    const [y, m] = r.date.split('-');
+                    return r.colleague === colleague && r.type === 'No Pay Leave' && parseInt(y) === selectedYear && parseInt(m) === selectedMonth;
+                }).length;
 
                 teamHtml += `<div class="colleague-card">
                     <div class="colleague-avatar" style="background-color: ${COLLEAGUE_COLORS[colleague]}">${colleague.charAt(0)}</div>
                     <div class="colleague-info">
                         <h4>${colleague}</h4>
-                        <p>${al} AL, ${el} EL</p>
+                        <p>${al} AL, ${el} EL${npl > 0 ? ', ' + npl + ' NPL' : ''}</p>
                     </div>
                 </div>`;
             });
@@ -3563,7 +3592,7 @@
                 
                 // AL section
                 if (alLeaves.length > 0) {
-                    allLeavesHtml += '<div><h4 style="color: var(--primary); margin-bottom: 10px;">AL:</h4>';
+                    allLeavesHtml += '<div style="margin-bottom: 20px;"><h4 style="color: var(--primary); margin-bottom: 10px;">AL:</h4>';
                     const alByColleague = {};
                     alLeaves.forEach(leave => {
                         if (!alByColleague[leave.colleague]) {
@@ -3578,6 +3607,25 @@
                         const sortedItems = items.sort((a, b) => a.day - b.day);
                         const displayDays = sortedItems.map(item => item.day + item.suffix).join(', ');
                         allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${displayDays}</div>`;
+                    });
+                    allLeavesHtml += '</div>';
+                }
+                
+                // No Pay Leave section
+                const nplLeaves = filteredLeaves.filter(r => r.type === 'No Pay Leave');
+                if (nplLeaves.length > 0) {
+                    allLeavesHtml += '<div><h4 style="color: #6b7280; margin-bottom: 10px;">NPL (No Pay Leave):</h4>';
+                    const nplByColleague = {};
+                    nplLeaves.forEach(leave => {
+                        if (!nplByColleague[leave.colleague]) {
+                            nplByColleague[leave.colleague] = [];
+                        }
+                        const day = parseInt(leave.date.split('-')[2]);
+                        nplByColleague[leave.colleague].push(day);
+                    });
+                    Object.entries(nplByColleague).forEach(([colleague, days]) => {
+                        const sortedDays = days.sort((a, b) => a - b);
+                        allLeavesHtml += `<div style="margin-left: 10px; margin-bottom: 8px;"><strong>${colleague}:</strong> ${sortedDays.join(', ')}</div>`;
                     });
                     allLeavesHtml += '</div>';
                 }

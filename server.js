@@ -16,6 +16,63 @@ const MONDAY_BOARD_ID = process.env.MONDAY_BOARD_ID || '5027993274';
 const MONGO_URI = process.env.MONGODB_URI || "mongodb+srv://jacklungcmbinary_db_user:FsZNjFirzQRT8LNR@cluster0.p7xge.mongodb.net/leave_bot?retryWrites=true&w=majority";
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
+// --- Talenox Integration ---
+const TALENOX_API_TOKEN = process.env.TALENOX_API_TOKEN || '';
+const TALENOX_EMPLOYEE_MAP = {
+  // Map colleague name -> Talenox employee_id
+  // Add more colleagues here once you have their Talenox employee IDs
+  'Jack': process.env.TALENOX_EMPLOYEE_ID_JACK || ''
+};
+const TALENOX_AL_CATEGORY_ID = process.env.TALENOX_AL_CATEGORY_ID || null; // Annual Leave type ID in Talenox
+
+async function submitToTalenox(colleague, date, halfDay) {
+  const token = TALENOX_API_TOKEN;
+  const employeeId = TALENOX_EMPLOYEE_MAP[colleague];
+  const categoryId = TALENOX_AL_CATEGORY_ID;
+
+  if (!token || !employeeId || !categoryId) {
+    console.log(`Talenox: skipping ${colleague} - missing token/employeeId/categoryId`);
+    return null;
+  }
+
+  // Determine applied duration type
+  let durationType = 'full_day';
+  if (halfDay === 'am') durationType = 'first_half';
+  else if (halfDay === 'pm') durationType = 'second_half';
+
+  const payload = {
+    employee_id: parseInt(employeeId),
+    category_id: parseInt(categoryId),
+    category: 'type',
+    start_date: date,
+    end_date: date,
+    remarks: 'Submitted via CM Binary Leave Bot',
+    applied_durations: [{ date, type: durationType }]
+  };
+
+  try {
+    const response = await axios.post(
+      'https://api.talenox.com/api/v2/leave_beta/applications',
+      payload,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+    const talenoxId = response.data?.leave_application_id;
+    console.log(`Talenox: AL submitted for ${colleague} on ${date}, id=${talenoxId}`);
+    return talenoxId;
+  } catch (err) {
+    const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.error(`Talenox: Error submitting AL for ${colleague}:`, errMsg);
+    return null;
+  }
+}
+
 const GROUP_MAPPING = {
   'Jenny': 'group_mkya843p',
   'Holly': 'new_group__1',
@@ -339,7 +396,17 @@ app.post('/api/leave', async (req, res) => {
       record.id = result.insertedId.toString();
     }
 
-
+    // Submit to Talenox if type is AL
+    if (type === 'AL') {
+      const talenoxId = await submitToTalenox(colleague, date, halfDay || null);
+      if (talenoxId) {
+        record.talenoxId = talenoxId;
+        await leaveCollection.updateOne(
+          { $or: [{ mondayId: record.mondayId }, { id: record.id }] },
+          { $set: { talenoxId } }
+        );
+      }
+    }
 
     await refreshLocalData();
     backupToGit();
